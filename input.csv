@@ -1,0 +1,14 @@
+start time,location,,,,,
+8:30,"Huonville, Tas",,,,,
+Leg,Discipline,Short,Long,Elevation,Boxes,rapids
+1,Kayak,1:50,3:45,0,start,
+2,Bike,3:55,7:50,1680,"bike, paddle",
+3,Hike,2:30,4:45,560,,
+4,Bike,1:53,3:45,372,,
+5,Kayak,4:09,6:45,0,"bike, paddle",Y
+6,Hike,13:00,21:40,2100,"A, paddle",
+7,Bike,4:17,8:34,1100,"B, bike",
+8,Kayak,11:07,18:31,1000,"A, D, paddle",Y
+9,Bike,11:24,19:00,2170,"A, D, paddle",
+10,Kayak,3:34,7:09,0,"C, paddle, bike",
+11,Bike,7:04,15:09,1370,"C, paddle, bike",
