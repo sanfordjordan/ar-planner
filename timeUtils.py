@@ -47,7 +47,7 @@ def calcTime(prevLeg, currentLeg, startDateTime, prevSleptNight=None):
     longTime = parse_time_string(currentLeg.longTime)
     currentLegTimeEst = shortTime + (longTime - shortTime) / 2
     currentFinish = currentStart + currentLegTimeEst
-    didSleep = sleep > 0
+    didSleep = sleep > timedelta(0)
     return currentStart, currentFinish, prevSleptNight, didSleep
 
 def printLegDetails(inputData):
