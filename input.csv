@@ -1,7 +1,7 @@
-start time,location,,,,,
-8:30,"Huonville, Tas",,,,,
+start time,start date,start loc,,,,
+8:30,2/03/2025,"Huonville, TAS",,,,
 Leg,Discipline,Short,Long,Elevation,Boxes,rapids
-1,Kayak,1:50,3:45,0,start,
+1,Kayak,1:50,3:45,0,,
 2,Bike,3:55,7:50,1680,"bike, paddle",
 3,Hike,2:30,4:45,560,,
 4,Bike,1:53,3:45,372,,

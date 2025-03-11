@@ -3,9 +3,11 @@ import sys
 from csvReader import readCSV
 from clothes import getClothes
 from gear import getGear
+from timeUtils import printLegDetails
 
 def main():
     inputData = readCSV()
+    printLegDetails(inputData)
     
     for leg in inputData:
         clothes = getClothes(leg)
@@ -14,8 +16,8 @@ def main():
         #food
         #water
         #sleep gear
-        print(clothes)
 
+    
 
 if __name__ == "__main__":
     main()

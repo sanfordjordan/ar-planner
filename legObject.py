@@ -14,6 +14,7 @@ class Leg:
     self.maxTemp = 20
     self.startTime = 0
     self.finishTime = 0
+    self.sleepBefore = False
 
     self.boxes = makeBoxObj
 

@@ -1,44 +1,33 @@
 import csv
 
 from legObject import Leg
+from timeUtils import calcTime
+from datetime import datetime
 
 def readCSV():
     inputData = []
+    startTime = ''
+    location = ''
+    prevSleptNight = None
+
     with open('input.csv', mode ='r')as file:
         csvFile = csv.reader(file)
-        startTime = '8:30'
-        #location = csvFile[1]
-        print(startTime)
-        index = 0
-        for lines in csvFile: #TODO ignore first 3 lines
-            if lines[0] != 'Leg': #skip title row
-                leg = Leg(lines)
+        for index, line in enumerate(csvFile):
+            if index == 1:
+                startTime = line[0]
+                startDate = line[1]
+                startDateTime = datetime.strptime(f"{startDate} {startTime}", "%d/%m/%Y %H:%M")
+                location = line[2]
+            if index >= 3:
+                leg = Leg(line)
                 prevLeg = 'NA'
-                if index > 0: prevLeg = inputData(-1)
-                currentStart, currentFinish = calcTime(prevLeg, leg, startTime)
+                if index > 3: prevLeg = inputData[-1]
+                currentStart, currentFinish, prevSleptNight, didSleep = calcTime(prevLeg, leg, startDateTime, prevSleptNight)
                 leg.startTime = currentStart
                 leg.finishTime = currentFinish
+                leg.sleepBefore = didSleep
                 inputData.append(leg)
                 #missing weather data, time estimates
                 
     return inputData
 
-def calcTime(prevLeg, currentLeg, startTime):
-    currentDiscipline = currentLeg.discipline
-  
-    sleep = 0
-    currentStart = startTime
-    if prevLeg != 'NA': 
-        taTime = 10
-        lastDiscipline = prevLeg.discipline
-        if lastDiscipline == 'Kayak': taTime += 10 
-        if lastDiscipline == 'Bike': taTime += 6
-        if currentDiscipline == 'Kayak': taTime += 8
-        if currentDiscipline == 'Bike': taTime += 6
-        currentStart = prevLeg.finishTime + taTime + sleep
-        
-    currentLegTimeEst = (currentLeg.shortTime + currentLeg.shortTime)# /2 #TODO string to time
-    currentFinish = currentStart + currentLegTimeEst
-    return (currentStart, currentFinish)
-    #start time is prev finish + ta time + sleep
-    
