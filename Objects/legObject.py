@@ -1,4 +1,5 @@
-from boxesObject import Box
+from datetime import date, timedelta
+from Objects.boxesObject import Box
 
 
 class Leg:
@@ -12,8 +13,11 @@ class Leg:
     self.rapids = legStuff[6]
     self.minTemp = 10
     self.maxTemp = 20
-    self.startTime = 0
-    self.finishTime = 0
+    self.startTime = None
+    self.finishTime = None
+    self.avgTime =  timedelta(minutes=0)
+    self.avgTemp = 20
+    self.waterReq = 0
     self.sleepBefore = False
 
     self.boxes = makeBoxObj

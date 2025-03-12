@@ -1,14 +1,14 @@
 import csv
-
-from legObject import Leg
+from typing import List, Tuple
+from Objects.legObject import Leg
+from Objects.raceInfoObject import RaceInfo
 from timeUtils import calcTime
 from datetime import datetime
 
-def readCSV():
+def readCSV()-> Tuple[List[Leg], RaceInfo]:
     inputData = []
     startTime = ''
     location = ''
-    prevSleptNight = None
 
     with open('input.csv', mode ='r')as file:
         csvFile = csv.reader(file)
@@ -18,16 +18,9 @@ def readCSV():
                 startDate = line[1]
                 startDateTime = datetime.strptime(f"{startDate} {startTime}", "%d/%m/%Y %H:%M")
                 location = line[2]
+                raceInfo = RaceInfo(startDateTime, location)
             if index >= 3:
-                leg = Leg(line)
-                prevLeg = 'NA'
-                if index > 3: prevLeg = inputData[-1]
-                currentStart, currentFinish, prevSleptNight, didSleep = calcTime(prevLeg, leg, startDateTime, prevSleptNight)
-                leg.startTime = currentStart
-                leg.finishTime = currentFinish
-                leg.sleepBefore = didSleep
-                inputData.append(leg)
-                #missing weather data, time estimates
+                inputData.append(Leg(line))
                 
-    return inputData
+    return inputData, raceInfo
 

@@ -1,4 +1,21 @@
 from datetime import datetime, timedelta
+from typing import List
+
+from Objects.legObject import Leg
+from Objects.raceInfoObject import RaceInfo
+
+def appendTimes(inputData: List[Leg], raceInfo: RaceInfo) -> List[Leg]:
+    prevSleptNight = None
+
+    for index, leg in enumerate(inputData):
+        prevLeg = 'NA'
+        if index > 0: prevLeg = inputData[index-1]
+        currentStart, currentFinish, prevSleptNight, didSleep = calcTime(prevLeg, leg, raceInfo.startDateTime, prevSleptNight)
+        leg.startTime = currentStart
+        leg.finishTime = currentFinish
+        leg.avgTime  = (currentFinish - currentStart).total_seconds() / 3600
+        leg.sleepBefore = didSleep
+    return inputData
 
 def parse_time_string(time_str):
     """Converts a 'hh:mm' string into a timedelta object."""
@@ -49,24 +66,3 @@ def calcTime(prevLeg, currentLeg, startDateTime, prevSleptNight=None):
     currentFinish = currentStart + currentLegTimeEst
     didSleep = sleep > timedelta(0)
     return currentStart, currentFinish, prevSleptNight, didSleep
-
-def printLegDetails(inputData):
-    for i, leg in enumerate(inputData):
-        leg_number = i + 1
-        discipline = leg.discipline
-        start_time = leg.startTime
-        finish_time = leg.finishTime
-        duration = finish_time - start_time
-
-        print(f"Leg {leg_number}: {discipline}")
-        print(f"  Start Time:  {start_time.strftime('%d/%m/%Y %H:%M')}")
-        print(f"  Finish Time: {finish_time.strftime('%d/%m/%Y %H:%M')}")
-        print(f"  Duration:    {str(duration)}")
-
-    
-        if i < len(inputData) - 1:
-            next_leg = inputData[i + 1]
-            ta_time = next_leg.startTime - finish_time
-            print(f"  TA Time:     {str(ta_time)}")
-        
-        print("-" * 40)

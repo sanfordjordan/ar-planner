@@ -24,3 +24,15 @@ def calcBikeGear(leg):
     if leg.discipline != 'Bike': return []
     return bikeGear
 
+def getCleanupGear(prevLeg):
+    """Determines the gear needed for cleaning up after the previous leg."""
+    
+    cleanupGear = []
+    
+    if prevLeg == 'NA': return cleanupGear  # No cleanup gear needed if there's no previous leg
+
+    discipline = prevLeg.discipline
+
+    if discipline == "Kayak":
+        cleanupGear.extend(["towel", "empty garbage bag"])
+    return cleanupGear
