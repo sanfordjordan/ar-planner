@@ -1,4 +1,7 @@
-def appendWaterNeeded(leg, sweatLevel):
+from Objects.legObject import Leg
+
+
+def appendWaterNeeded(leg: Leg, sweatLevel: int):
     """Calculates the amount of water needed (in liters) for a given leg."""
 
     # Calculate heat level (minimum value is 1)

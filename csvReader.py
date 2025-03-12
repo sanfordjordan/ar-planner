@@ -2,7 +2,6 @@ import csv
 from typing import List, Tuple
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
-from timeUtils import calcTime
 from datetime import datetime
 
 def readCSV()-> Tuple[List[Leg], RaceInfo]:
@@ -16,9 +15,10 @@ def readCSV()-> Tuple[List[Leg], RaceInfo]:
             if index == 1:
                 startTime = line[0]
                 startDate = line[1]
-                startDateTime = datetime.strptime(f"{startDate} {startTime}", "%d/%m/%Y %H:%M")
                 location = line[2]
+                startDateTime = datetime.strptime(f"{startDate} {startTime}", "%d/%m/%Y %H:%M")
                 raceInfo = RaceInfo(startDateTime, location)
+                
             if index >= 3:
                 inputData.append(Leg(line))
                 
