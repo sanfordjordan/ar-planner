@@ -8,19 +8,21 @@ def appendTimes(inputData: List[Leg], raceInfo: RaceInfo) -> List[Leg]:
     prevSleptNight = None
     prevLeg = None
     nextLeg = None
+    sleepDuring = False
     raceStart = raceInfo.startDateTime
 
     for index, leg in enumerate(inputData):
         if index > 0: prevLeg = inputData[index - 1]
         if index < len(inputData)-1: nextLeg = inputData[index + 1]
         if  leg.discipline == 'TA':
-            currentStart, currentFinish, prevSleptNight = calcTATime(prevLeg, nextLeg, prevSleptNight, raceStart)
+            currentStart, currentFinish, prevSleptNight, sleepDuring = calcTATime(prevLeg, nextLeg, prevSleptNight, raceStart)
         else:
             currentStart, currentFinish = calcTime(prevLeg, leg, raceStart)
 
         leg.startTime = currentStart
         leg.finishTime = currentFinish
         leg.avgTime = (currentFinish - currentStart).total_seconds() / 3600  # Convert to hours
+        leg.sleepDuring = sleepDuring
 
     return inputData
 
@@ -34,6 +36,7 @@ def calcTATime(prevLeg: Leg, nextLeg: Leg, prevSleptNight: datetime, raceStart: 
     lastDiscipline = prevLeg.discipline
     currentDiscipline = nextLeg.discipline
     currentStart = prevLeg.finishTime
+    sleepDuring = False
 
     taTime = timedelta(minutes=10)
     if lastDiscipline == 'Kayak': taTime += timedelta(minutes=10)
@@ -46,7 +49,6 @@ def calcTATime(prevLeg: Leg, nextLeg: Leg, prevSleptNight: datetime, raceStart: 
 
  # Sleep logic - only starts on the **second night**
     finish_date = prevLeg.finishTime.date()
-    finish_time = prevLeg.finishTime.time()
     
     second_race_night =  raceStart.date() + timedelta(days=2)  # Sleep can only start on this night
 
@@ -61,9 +63,10 @@ def calcTATime(prevLeg: Leg, nextLeg: Leg, prevSleptNight: datetime, raceStart: 
         if next_leg_finish > datetime.strptime("05:00", "%H:%M").time() or next_leg_time > timedelta(hours=8):
             sleep = timedelta(hours=3)
             prevSleptNight = finish_date  # Mark sleep for this night
+            sleepDuring = True
 
     currentFinish = currentStart + taTime + sleep
-    return currentStart, currentFinish, prevSleptNight
+    return currentStart, currentFinish, prevSleptNight, sleepDuring
 
 def calcTime(prevLeg: Leg, currentLeg: Leg, startDateTime: datetime) -> tuple[datetime, datetime]:
     """Calculate start and finish times for a moving leg."""
