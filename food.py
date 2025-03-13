@@ -1,5 +1,5 @@
 def appendFoodNeeded(leg, weight):
-    print('hmmm')
+    return
     #TODO
     #~2/3 of leg worth of 4hr fuel
     #1/3 of leg in spare 4hr fuel

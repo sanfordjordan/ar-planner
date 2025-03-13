@@ -1,7 +1,7 @@
 from typing import List
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
-from csvReader import readCSV
+from csvReader import readFood, readLegs
 from clothes import getClothes
 from food import appendFoodNeeded
 from gear import getCleanupGear, getGear
@@ -11,9 +11,13 @@ from water import appendWaterNeeded
 
 sweatLevel = 1
 weight = 57
+#            carb, protein, fat, sodium, magnesium, potassium, calcium
+foodFormula = [45, 5,       2.1, 400,    30,        235,       50] #TODO:formula based off weight
 
 def main():
-    legsData, raceInfo = readCSV()
+    legsData, raceInfo = readLegs()
+    foodData = readFood()
+    
     legsData = appendTimes(legsData, raceInfo)
     #legsData = appendTemps(legsData, raceInfo) TODO
 
