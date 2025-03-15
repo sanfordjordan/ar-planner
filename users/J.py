@@ -1,0 +1,11 @@
+name = 'Jordan'
+weight = 0
+sweatLevel = 3
+carbPH = 999
+proteinPH = 999
+fatPH =  999
+sodiumPH = 999
+foodFormula = [carbPH, proteinPH, fatPH, sodiumPH]
+kayakFood = []
+hikeFood = []
+bikeFood = []

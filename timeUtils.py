@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import List
 
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
 
-def appendTimes(inputData: List[Leg], raceInfo: RaceInfo) -> List[Leg]:
+def appendTimes(inputData: List[Leg], raceInfo: RaceInfo):
     prevSleptNight = None
     prevLeg = None
     nextLeg = None
@@ -23,8 +23,7 @@ def appendTimes(inputData: List[Leg], raceInfo: RaceInfo) -> List[Leg]:
         leg.finishTime = currentFinish
         leg.avgTime = (currentFinish - currentStart).total_seconds() / 3600  # Convert to hours
         leg.sleepDuring = sleepDuring
-
-    return inputData
+        sleepDuring = False
 
 def parse_time_string(time_str: str) -> timedelta:
     """Converts a 'hh:mm' string into a timedelta object."""
@@ -82,3 +81,42 @@ def calcTime(prevLeg: Leg, currentLeg: Leg, startDateTime: datetime) -> tuple[da
     currentFinish = currentStart + currentLegTimeEst
 
     return currentStart, currentFinish
+
+#This method might be wrong idk
+def doesLegIntersectTimeRange(leg, start_hour, end_hour):
+    """Check if a leg's time range intersects with a given time window, even across multiple days."""
+    leg_start = leg.startTime
+    leg_end = leg.finishTime
+
+    # If the leg spans multiple days, it MUST intersect some time window
+    if (leg_end - leg_start).days >= 1:
+        return True
+
+    # Convert times into absolute timestamps
+    leg_date = leg_start.date()
+    range_start = datetime.combine(leg_date, time(start_hour, 0))
+    range_end = datetime.combine(leg_date, time(end_hour, 0))
+
+    if start_hour < end_hour:
+        # Case 1: Time range does NOT cross midnight (e.g., 10:00 - 18:00)
+        return leg_start < range_end and leg_end > range_start
+
+    else:
+        # Case 2: Time range CROSSES midnight (e.g., 22:00 - 07:00)
+        next_day = leg_date + timedelta(days=1)
+        range_end_next_day = datetime.combine(next_day, time(end_hour, 0))
+
+        return (leg_start.time() >= time(start_hour, 0) or leg_start.time() < time(end_hour, 0)) or \
+               (leg_end.time() >= time(start_hour, 0) or leg_end.time() < time(end_hour, 0)) or \
+               (leg_start < range_end_next_day and leg_end > range_start)
+
+def getSleepTimes(legs: List[Leg]) -> list:
+    sleep_times = []
+    
+    for leg in legs:
+        if leg.sleepDuring:  # If sleep is scheduled during the leg
+            sleep_end = leg.finishTime  # The finish time is the sleep end time
+            sleep_start = sleep_end - timedelta(hours=3)  # Subtract 3 hours to get the start time
+            sleep_times.append((sleep_start, sleep_end))  # Append the sleep period to the list
+    
+    return sleep_times

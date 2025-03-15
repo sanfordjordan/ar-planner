@@ -1,4 +1,6 @@
 from typing import List
+from Food.food import nutrient_difference
+from Objects.foodObject import Food
 from Objects.legObject import Leg
 
 def printWaterRequirements(inputData: List[Leg]):
@@ -32,3 +34,24 @@ def printLegDetails(inputData: List[Leg]):
    
 
         print("-" * 40)
+
+# Function to compare the nutrient values
+def compare_food_nutrients(targets: List[Food], actuals: List[Food]):
+    overall_diff = {'calories': 0, 'protein': 0, 'carbs': 0, 'fat': 0, 'sodium': 0}
+    
+    # Print headers for the comparison table
+    print(f"{'Food':<20}{'Calories Diff':<15}{'Carbs Diff':<15}{'Protein Diff':<15}{'Fat Diff':<15}{'Sodium Diff':<15}")
+    print('-' * 95)
+    
+    for index, (target, actual) in enumerate(zip(targets, actuals)):
+        diff = nutrient_difference(actual, target)
+        
+        leg_or_ta = f"Leg {(index // 2) + 1}" if index % 2 == 0 else f"TA {(index // 2) + 1}"
+        print(f"{leg_or_ta:<20}{diff['calories']:<15}{diff['carbs']:<15}{diff['protein']:<15}{diff['fat']:<15}{diff['sodium']:<15}")
+        
+        for nutrient in overall_diff:
+            overall_diff[nutrient] += diff[nutrient]
+    
+    # Print the overall comparison
+    print('-' * 95)
+    print(f"{'Total Dif':<20}{overall_diff['calories']:<15}{overall_diff['carbs']:<15}{overall_diff['protein']:<15}{overall_diff['fat']:<15}{overall_diff['sodium']:<15}")
