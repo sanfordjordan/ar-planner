@@ -31,14 +31,12 @@ def main():
         gear = getGear(leg)
         prevLeg = legs[index - 1] if index > 0 else 'NA'
        
-        #add TA info. maybe create obj? food and water during TA
-        #gear for cleaning up after prev leg
+     
         #food
         #water
-        #sleep gear
 
-    printLegDetails(legs)
-    #printWaterRequirements(legs)
+    #printLegDetails(legs)
+    printWaterRequirements(legs)
     #print_leg_food(legs)
     #compare_food_nutrients(targets, actuals)
     #printShoppingList(legs)

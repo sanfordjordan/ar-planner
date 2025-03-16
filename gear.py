@@ -1,3 +1,8 @@
+from typing import List
+
+from Objects.legObject import Leg
+
+
 def getGear(leg):
     gear = []
     for hikeGear in calcHikingGear(leg): gear.append(hikeGear)
@@ -24,15 +29,20 @@ def calcBikeGear(leg):
     if leg.discipline != 'Bike': return []
     return bikeGear
 
-def getTAGear(prevLeg):
-    """Determines the gear needed for cleaning up after the previous leg."""
+def getTAGear(legs: List[Leg]):
+    """Determines the gear needed in TA"""
+    gearTA = []
     
-    cleanupGear = []
-    
-    if prevLeg == 'NA': return cleanupGear  # No cleanup gear needed if there's no previous leg
+    for index, leg in enumerate(legs):
+        if leg.discipline != 'TA': continue
 
-    discipline = prevLeg.discipline
+        if leg.sleepDuring == True:
+            gearTA.extend(["tent", "sleeping bag"])
 
-    if discipline == "Kayak":
-        cleanupGear.extend(["towel", "empty garbage bag"])
-    return cleanupGear
+        nextLeg = legs[index+1]
+
+        prevLeg= legs[index-1]
+        if prevLeg.discipline == "Kayak":
+            gearTA.extend(["towel", "empty garbage bag"])
+        
+    return gearTA
