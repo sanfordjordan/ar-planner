@@ -24,7 +24,7 @@ def calcBikeGear(leg):
     if leg.discipline != 'Bike': return []
     return bikeGear
 
-def getCleanupGear(prevLeg):
+def getTAGear(prevLeg):
     """Determines the gear needed for cleaning up after the previous leg."""
     
     cleanupGear = []

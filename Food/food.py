@@ -7,12 +7,12 @@ from Objects.legObject import Leg
 from Objects.userObject import User
 from water import appendWaterNeeded
 
-def appendFoodNeeded(legsData: List[Leg], foodData: List[Food], user: User):
-    appendNoDoze(legsData)
+def appendFoodNeeded(legs: List[Leg], foodData: List[Food], user: User):
+    appendNoDoze(legs)
     targets = []
     actuals = []
 
-    for leg in legsData:
+    for leg in legs:
         time = leg.avgTime
         target = createFoodTarget(time, user.foodFormula)
         caloriesNeeded = calcCalories(target)
@@ -21,13 +21,15 @@ def appendFoodNeeded(legsData: List[Leg], foodData: List[Food], user: User):
         food = getRealFood(leg, user)
         realNutrients = calcActualNutrients(food,  foodData)
         realCalories = calcCalories(realNutrients)
-        caloriesToGo = caloriesNeeded - realCalories
+        
 
         #Super juice
-        SJInfo = next(food for food in foodData if food.name == '4hr fuel')
-        SJCalories = calcCalories(SJInfo)
-        SJRequired = round(caloriesToGo / SJCalories, 1)
-        food.append((SJInfo.name, SJRequired))
+        caloriesToGo = caloriesNeeded - realCalories
+        if caloriesToGo > 0 and leg.discipline != 'TA':
+            SJInfo = next(food for food in foodData if food.name == '4hr fuel')
+            SJCalories = calcCalories(SJInfo)
+            SJRequired = round(caloriesToGo / SJCalories, 1)
+            food.append((SJInfo.name, SJRequired))
         totalNutrients = calcActualNutrients(food,  foodData)
 
 
@@ -36,10 +38,11 @@ def appendFoodNeeded(legsData: List[Leg], foodData: List[Food], user: User):
 
         #Salt
         saltNeeded = target.sodium - totalNutrients.sodium
-        saltInfo = next(food for food in foodData if food.name == 'SaltStick Caps 100')
-        saltPillsNeeded = round(saltNeeded/saltInfo.sodium, 0)
-        if saltPillsNeeded > 0: food.append((saltInfo.name, saltPillsNeeded))
-        totalNutrients = calcActualNutrients(food,  foodData)
+        if saltNeeded > 0 and leg.discipline != 'TA':
+            saltInfo = next(food for food in foodData if food.name == 'SaltStick Caps 100')
+            saltPillsNeeded = round(saltNeeded/saltInfo.sodium)
+            if saltPillsNeeded > 0: food.append((saltInfo.name, saltPillsNeeded))
+            totalNutrients = calcActualNutrients(food,  foodData)
 
         #Water
         waterFromFood = totalNutrients.water
@@ -70,8 +73,9 @@ def getRealFood(leg: Leg, user: User) -> List[str]:
    
     hours = round(leg.avgTime)
     if len(optionsTable) == 0: 
-        if leg.discipline == 'TA' and hours > 2: food = ['Tuna mexican rice']
-        else: food = [] #TODO: Q: should we eat on a normal TA?...
+        if leg.discipline == 'TA':
+            food.append('unc toby chewy apricot bar')
+            if hours > 2: food.append('Tuna mexican rice')
     elif len(optionsTable) <= hours: food = optionsTable[-1]
     else: food = optionsTable[hours-1]
     food = [food for food in food if food != '4hr fuel'] #not real food, add it on later

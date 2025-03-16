@@ -4,7 +4,7 @@ sweatLevel = 1
 carbPH = 45
 proteinPH = 5
 fatPH =  2.1
-sodiumPH = 400
+sodiumPH = 300
 foodFormula = [carbPH, proteinPH, fatPH, sodiumPH]
 kayakFood = [
     ['Banana', 'unc toby chewy apricot bar'],
