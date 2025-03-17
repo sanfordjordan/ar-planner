@@ -1,8 +1,13 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from datetime import datetime, timedelta
 from collections import defaultdict
 from typing import List
 from Food.food import nutrient_difference
 from Objects.foodObject import Food
 from Objects.legObject import Leg
+from Objects.raceInfoObject import RaceInfo
 
 def printWaterRequirements(inputData: List[Leg]):
     total_water = sum(leg.waterReq for leg in inputData if leg.discipline != 'TA')
@@ -97,3 +102,79 @@ def printShoppingList(legs: List[Leg]):
 
     print('-' * 45)
     print(f"Total unique items: {len(sorted_items)}")
+
+def printPrevWeather(df):
+    df['date'] = pd.to_datetime(df['date'])
+    today = datetime.now().date()
+    one_week_ago = today - timedelta(days=7)
+    last_week_df = df[(df['date'].dt.date >= one_week_ago) & (df['date'].dt.date <= today)]
+    printWeatherDaily(last_week_df, 'Weather Last Week')
+
+def printEventWeather(df, raceInfo: RaceInfo):
+    df['date'] = pd.to_datetime(df['date'])
+    start = raceInfo.startDateTime.date()
+    end = raceInfo.finishDateTime.date()
+    eventDF = df[(df['date'].dt.date >=start) & (df['date'].dt.date <= end)]
+    printWeatherHourly(eventDF, 'Weather During Event')
+
+def printWeatherDaily(dfSegment, title):
+    # Extract necessary columns
+    dates = dfSegment['date']
+    min_temps = dfSegment['temperature_2m_min']
+    max_temps = dfSegment['temperature_2m_max']
+    rainfall = dfSegment['precipitation_sum']
+
+    # Plotting
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
+    # Temperature plot with fill_between
+    ax1.fill_between(dates, min_temps, max_temps, color='lightcoral', alpha=0.5, label='Temperature Range')
+    ax1.plot(dates, min_temps, color='blue', linestyle='--', label='Min Temperature')
+    ax1.plot(dates, max_temps, color='red', linestyle='--', label='Max Temperature')
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Temperature (°C)')
+    ax1.set_title(title)
+    ax1.legend(loc='upper left')
+    ax1.grid(True)
+
+    # Rainfall plot on secondary y-axis
+    ax2 = ax1.twinx()
+    ax2.bar(dates, rainfall, color='skyblue', alpha=0.6, width=0.6, label='Rainfall')
+    ax2.set_ylabel('Rainfall (mm)')
+    ax2.legend(loc='upper right')
+
+    # Formatting x-axis for better readability
+    fig.autofmt_xdate()
+
+    plt.show()
+
+def printWeatherHourly(df, title):
+    fig, ax1 = plt.subplots(figsize=(10, 6))
+
+    # Plot apparent temperature
+    ax1.plot(df['date'], df['apparent_temperature'], 'b-', marker='o', label='Apparent Temperature (°C)')
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Apparent Temperature (°C)', color='b')
+    ax1.tick_params('y', colors='b')
+
+    # Create a second y-axis for precipitation
+    ax2 = ax1.twinx()
+    ax2.bar(df['date'], df['precipitation'], color='gray', alpha=0.3, label='Precipitation (mm)')
+    ax2.set_ylabel('Precipitation (mm)', color='gray')
+    ax2.tick_params('y', colors='gray')
+
+    # Add precipitation probability as a line plot
+    ax3 = ax1.twinx()
+    ax3.plot(df['date'], df['precipitation_probability'], 'g--', marker='x', label='Precipitation Probability (%)')
+    ax3.set_ylabel('Precipitation Probability (%)', color='g')
+    ax3.tick_params('y', colors='g')
+    ax3.spines['right'].set_position(('outward', 60))  # Offset the third y-axis
+
+    # Add legends
+    fig.legend(loc='upper left', bbox_to_anchor=(0.1, 0.9))
+
+    # Format x-axis
+    plt.gcf().autofmt_xdate()
+
+    plt.title(title)
+    plt.show()

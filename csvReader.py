@@ -1,15 +1,20 @@
 import csv
+import os
+import pandas as pd
+
 from typing import List, Tuple
 from Objects.boxesObject import Box
 from Objects.foodObject import Food
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from weather.weather import callWeatherMan
 
 def readLegs()-> Tuple[List[Leg], RaceInfo]:
     inputData = []
     startTime = ''
-    location = ''
+    latitude = ''
 
     with open('DB/legsDB.csv', mode ='r')as file:
         csvFile = csv.reader(file)
@@ -17,9 +22,10 @@ def readLegs()-> Tuple[List[Leg], RaceInfo]:
             if index == 1:
                 startTime = line[0]
                 startDate = line[1]
-                location = line[2]
+                latitude = line[2]
+                longitude = line[3]
                 startDateTime = datetime.strptime(f"{startDate} {startTime}", "%d/%m/%Y %H:%M")
-                raceInfo = RaceInfo(startDateTime, location)
+                raceInfo = RaceInfo(startDateTime, latitude, longitude)
 
             if index >= 3:
                 if index > 3:
@@ -38,4 +44,37 @@ def readFood()-> Tuple[List[Leg], RaceInfo]:
             if index > 0:
                 foodData.append(Food(line))
     return foodData
+
+def readWeather() -> pd.DataFrame:
+    weatherCSV = 'DB/weather.csv'
+    if isRecent(weatherCSV):
+        print("📄 Reading weather data from CSV...")
+        df = pd.read_csv(weatherCSV)
+    else:
+        print("🌐 Fetching weather data from API...")
+        daily_df, hourly_df = callWeatherMan()
+   
+        # Concatenate with multi-index headers (optional, simplifies re-load later)
+        daily_df['type'] = 'daily'
+        hourly_df['type'] = 'hourly'
+        combined_df = pd.concat([daily_df, hourly_df], ignore_index=True)
+
+        # Save to CSV
+        combined_df.to_csv(weatherCSV, index=False)
+        df = combined_df
+        print("✅ Data saved to CSV.")
+
+    # df now holds the weather data
+    print(df.head())
+    return df
+
+
+
+
+# Check if recent
+def isRecent(filepath):
+    if not os.path.exists(filepath):
+        return False
+    mod_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+    return (datetime.now() - mod_time) < timedelta(hours=1)
 

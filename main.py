@@ -1,11 +1,11 @@
 from typing import List
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
-from csvReader import readFood, readLegs
+from csvReader import readFood, readLegs, readWeather
 from clothes import getClothes
 from Food.food import appendFoodNeeded
 from gear import getTAGear, getGear
-from printers import  compare_food_nutrients, print_leg_food, printLegDetails, printShoppingList, printWaterRequirements
+from printers import  compare_food_nutrients, print_leg_food, printEventWeather, printLegDetails, printPrevWeather, printShoppingList, printWaterRequirements
 from timeUtils import appendTimes
 from users.createUser import createUser
 from utils import set_user_value
@@ -19,6 +19,9 @@ def main():
     legs, raceInfo = readLegs()
     foodData = readFood()
     appendTimes(legs, raceInfo)
+    weather = readWeather()
+    #printPrevWeather(weather)
+    printEventWeather(weather, raceInfo)
     #appendTemps(legsData, raceInfo) TODO
     targets, actuals = appendFoodNeeded(legs, foodData, user)
     cleanupGear = getTAGear(legs)
@@ -36,7 +39,7 @@ def main():
         #water
 
     #printLegDetails(legs)
-    printWaterRequirements(legs)
+    #printWaterRequirements(legs)
     #print_leg_food(legs)
     #compare_food_nutrients(targets, actuals)
     #printShoppingList(legs)

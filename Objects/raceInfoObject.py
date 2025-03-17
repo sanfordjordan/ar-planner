@@ -1,7 +1,9 @@
 class RaceInfo:
-  def __init__(self, startDateTime, location):
+  def __init__(self, startDateTime, latitude, longitude):
     self.startDateTime = startDateTime
-    self.location = location
+    self.finishDateTime = None
+    self.latitude = latitude
+    self.longitude = longitude
 
 
 

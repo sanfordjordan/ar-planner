@@ -24,6 +24,7 @@ def appendTimes(inputData: List[Leg], raceInfo: RaceInfo):
         leg.avgTime = (currentFinish - currentStart).total_seconds() / 3600  # Convert to hours
         leg.sleepDuring = sleepDuring
         sleepDuring = False
+    raceInfo.finishDateTime = inputData[-1].finishTime
 
 def parse_time_string(time_str: str) -> timedelta:
     """Converts a 'hh:mm' string into a timedelta object."""
