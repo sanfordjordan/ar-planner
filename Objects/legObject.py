@@ -20,3 +20,4 @@ class Leg:
     self.sleepDuring = False
     self.food = []
     self.spareSJ = 0
+    self.weather = None

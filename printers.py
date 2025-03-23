@@ -104,30 +104,36 @@ def printShoppingList(legs: List[Leg]):
     print('-' * 45)
     print(f"Total unique items: {len(sorted_items)}")
 
-def printPrevWeather(df):
+def printPrevWeather(weather):
     today = datetime.now().date()
     one_week_ago = today - timedelta(days=7)
-    last_week_df = df[(df['date'].dt.date >= one_week_ago) & (df['date'].dt.date <= today)]
-    printWeatherDaily(last_week_df, 'Weather Last Week')
+    last_week_hWeather = weather[(weather['date'].dt.date >= one_week_ago) & (weather['date'].dt.date <= today)]
+    printWeatherDaily(last_week_hWeather, 'Weather Last Week')
 
-def printEventWeather(df, raceInfo: RaceInfo):
+def printEventWeather(weather, raceInfo: RaceInfo):
     start = raceInfo.startDateTime.date()
     end = raceInfo.finishDateTime.date()
-    eventDF = df[(df['date'].dt.date >=start) & (df['date'].dt.date <= end)]
-    printWeatherHourly(eventDF, 'Weather During Event')
+    eventhWeather = weather[(weather['date'].dt.date >=start) & (weather['date'].dt.date <= end)]
+    printWeatherHourly(eventhWeather, 'Weather During Event')
 
-def printNextWeather(df):
+def printNextWeather(weather):
     start = datetime.now().date()
     end =  start + timedelta(days=7)
-    eventDF = df[(df['date'].dt.date >=start) & (df['date'].dt.date <= end)]
-    printWeatherHourly(eventDF, 'Weather This Week')
+    eventhWeather = weather[(weather['date'].dt.date >=start) & (weather['date'].dt.date <= end)]
+    printWeatherHourly(eventhWeather, 'Weather This Week')
 
-def printWeatherDaily(dfSegment, title):
+def printLegWeather(leg: Leg):
+    title = f"Weather for Leg {leg.number} {leg.discipline} between {leg.startTime} and {leg.finishTime}"
+    printWeatherHourly(leg.weather, title)
+
+def printWeatherDaily(weather, title):
+    dWeather = weather[weather['type'] == 'daily']
+
     # Extract necessary columns
-    dates = dfSegment['date']
-    min_temps = dfSegment['temperature_2m_min']
-    max_temps = dfSegment['temperature_2m_max']
-    rainfall = dfSegment['precipitation_sum']
+    dates = dWeather['date']
+    min_temps = dWeather['temperature_2m_min']
+    max_temps = dWeather['temperature_2m_max']
+    rainfall = dWeather['precipitation_sum']
 
     # Plotting
     fig, ax1 = plt.subplots(figsize=(10, 6))
@@ -153,42 +159,74 @@ def printWeatherDaily(dfSegment, title):
 
     plt.show()
 
-def printWeatherHourly(df, title):
+def printWeatherHourly(weather, title):
+    hWeather = weather[weather['type'] == 'hourly']
     fig, ax1 = plt.subplots(figsize=(15, 7))
     
     # Plot Actual and Apparent Temperature on ax1
-    ax1.plot(df['date'], df['temperature_2m'], color='blue', marker='o', label='Actual Temperature')
-    ax1.plot(df['date'], df['apparent_temperature'], color='red', linestyle='--', marker='x', label='Apparent Temperature')
-    ax1.set_xlabel("Date and Time")
+    ax1.plot(hWeather['date'], hWeather['temperature_2m'], color='blue', marker='o', label='Actual Temperature')
+    ax1.plot(hWeather['date'], hWeather['apparent_temperature'], color='red', linestyle='--', marker='x', label='Apparent Temperature')
+    ax1.set_xlabel("Time")
     ax1.set_ylabel("Temperature (°C)", color='black')
     ax1.tick_params(axis='y', labelcolor='black')
     
+    # Find the min and max temperature for labeling
+    min_temp = hWeather['temperature_2m'].min()
+    max_temp = hWeather['temperature_2m'].max()
+    
+    # Ensure there's valid data before accessing the min/max time
+    if not hWeather.empty:
+        min_temp_time = hWeather['date'][hWeather['temperature_2m'].idxmin()]
+        max_temp_time = hWeather['date'][hWeather['temperature_2m'].idxmax()]
+
+        # Annotate min and max temperature
+        ax1.annotate(f'Min Temp: {min_temp}°C', xy=(min_temp_time, min_temp), xytext=(min_temp_time, min_temp + 2),
+                     arrowprops=dict(facecolor='blue', arrowstyle='->'), fontsize=10, color='blue')
+        ax1.annotate(f'Max Temp: {max_temp}°C', xy=(max_temp_time, max_temp), xytext=(max_temp_time, max_temp - 2),
+                     arrowprops=dict(facecolor='red', arrowstyle='->'), fontsize=10, color='red')
+
     # Create a secondary axis for precipitation and probability
     ax2 = ax1.twinx()
-    ax2.bar(df['date'], df['precipitation'], color='gray', alpha=0.4, width=0.03, label='Precipitation (mm)')
-    ax2.plot(df['date'], df['precipitation_probability'], color='green', linestyle=':', marker='s', label='Precipitation Probability (%)')
+    ax2.bar(hWeather['date'], hWeather['precipitation'], color='deepskyblue', alpha=1, width=0.03, label='Precipitation (mm)')
+    ax2.plot(hWeather['date'], hWeather['precipitation_probability'], color='green', linestyle=':', marker='s', label='Precipitation Probability (%)')
     ax2.set_ylabel("Precipitation / Probability", color='black')
     ax2.tick_params(axis='y', labelcolor='black')
     
-    ax1.set_xticks(df['date'][::3])
-    ax1.set_xticklabels([dt.strftime('%H') for dt in df['date'][::3]], rotation=45)
+    # Add Cloud Cover as a bar chart overlay on a new axis
+    ax3 = ax1.twinx()  # Create another axis for cloud cover
+    ax3.spines['right'].set_position(('outward', 60))  # Move this axis to avoid overlap
+    cloud_cover_values = hWeather['cloud_cover'].values / 100  # Normalize the cloud cover values to between 0 and 1
+    for i, date in enumerate(hWeather['date']):
+        ax3.bar(date, hWeather['cloud_cover'].iloc[i], 
+                color='lightgray', 
+                alpha=cloud_cover_values[i],  # Apply the alpha gradient based on cloud cover percentage
+                width=0.042, 
+                zorder=-1)  # No label for cloud cover
 
+    # Plot wind speed on ax1 with a second y-axis (right)
+    ax4 = ax1.twinx()
+    ax4.plot(hWeather['date'], hWeather['wind_speed_10m'], color='orange', linestyle='-.', label='Wind Speed (m/s)')
+    ax4.set_ylabel("Wind Speed (m/s)", color='orange')
+    ax4.tick_params(axis='y', labelcolor='orange')
 
-    
+    # Set x-ticks every 3 hours and label them by hour only
+    ax1.set_xticks(hWeather['date'][::3])
+    ax1.set_xticklabels([dt.strftime('%H') for dt in hWeather['date'][::3]], rotation=45)
+
     # Mark vertical lines at the start of each day in the filtered data
-    # Get unique days (as datetime with time 00:00:00)
-    unique_days = pd.to_datetime(df['date'].dt.date.unique())
+    unique_days = pd.to_datetime(hWeather['date'].dt.date.unique())
     for day in unique_days:
         ax1.axvline(day, color='purple', linestyle='--', alpha=0.5)
-        # Annotate the day near the top
         ax1.text(day, ax1.get_ylim()[1], day.strftime('%a %b %d'), 
                  rotation=90, verticalalignment='bottom', color='purple', fontsize=8)
     
-    # Combine legends from both axes
+    # Combine legends from all axes
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
-    
+    lines4, labels4 = ax4.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2 + lines4, labels1 + labels2 + labels4, loc='upper left')
+
+    # Title and layout
     plt.title(title)
     plt.gcf().autofmt_xdate()  # Auto-format date labels
     plt.tight_layout()
