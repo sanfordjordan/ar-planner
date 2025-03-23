@@ -1,3 +1,4 @@
+import matplotlib.dates as mdates
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -104,18 +105,22 @@ def printShoppingList(legs: List[Leg]):
     print(f"Total unique items: {len(sorted_items)}")
 
 def printPrevWeather(df):
-    df['date'] = pd.to_datetime(df['date'])
     today = datetime.now().date()
     one_week_ago = today - timedelta(days=7)
     last_week_df = df[(df['date'].dt.date >= one_week_ago) & (df['date'].dt.date <= today)]
     printWeatherDaily(last_week_df, 'Weather Last Week')
 
 def printEventWeather(df, raceInfo: RaceInfo):
-    df['date'] = pd.to_datetime(df['date'])
     start = raceInfo.startDateTime.date()
     end = raceInfo.finishDateTime.date()
     eventDF = df[(df['date'].dt.date >=start) & (df['date'].dt.date <= end)]
     printWeatherHourly(eventDF, 'Weather During Event')
+
+def printNextWeather(df):
+    start = datetime.now().date()
+    end =  start + timedelta(days=7)
+    eventDF = df[(df['date'].dt.date >=start) & (df['date'].dt.date <= end)]
+    printWeatherHourly(eventDF, 'Weather This Week')
 
 def printWeatherDaily(dfSegment, title):
     # Extract necessary columns
@@ -149,32 +154,42 @@ def printWeatherDaily(dfSegment, title):
     plt.show()
 
 def printWeatherHourly(df, title):
-    fig, ax1 = plt.subplots(figsize=(10, 6))
-
-    # Plot apparent temperature
-    ax1.plot(df['date'], df['apparent_temperature'], 'b-', marker='o', label='Apparent Temperature (°C)')
-    ax1.set_xlabel('Date')
-    ax1.set_ylabel('Apparent Temperature (°C)', color='b')
-    ax1.tick_params('y', colors='b')
-
-    # Create a second y-axis for precipitation
+    fig, ax1 = plt.subplots(figsize=(15, 7))
+    
+    # Plot Actual and Apparent Temperature on ax1
+    ax1.plot(df['date'], df['temperature_2m'], color='blue', marker='o', label='Actual Temperature')
+    ax1.plot(df['date'], df['apparent_temperature'], color='red', linestyle='--', marker='x', label='Apparent Temperature')
+    ax1.set_xlabel("Date and Time")
+    ax1.set_ylabel("Temperature (°C)", color='black')
+    ax1.tick_params(axis='y', labelcolor='black')
+    
+    # Create a secondary axis for precipitation and probability
     ax2 = ax1.twinx()
-    ax2.bar(df['date'], df['precipitation'], color='gray', alpha=0.3, label='Precipitation (mm)')
-    ax2.set_ylabel('Precipitation (mm)', color='gray')
-    ax2.tick_params('y', colors='gray')
+    ax2.bar(df['date'], df['precipitation'], color='gray', alpha=0.4, width=0.03, label='Precipitation (mm)')
+    ax2.plot(df['date'], df['precipitation_probability'], color='green', linestyle=':', marker='s', label='Precipitation Probability (%)')
+    ax2.set_ylabel("Precipitation / Probability", color='black')
+    ax2.tick_params(axis='y', labelcolor='black')
+    
+    ax1.set_xticks(df['date'][::3])
+    ax1.set_xticklabels([dt.strftime('%H') for dt in df['date'][::3]], rotation=45)
 
-    # Add precipitation probability as a line plot
-    ax3 = ax1.twinx()
-    ax3.plot(df['date'], df['precipitation_probability'], 'g--', marker='x', label='Precipitation Probability (%)')
-    ax3.set_ylabel('Precipitation Probability (%)', color='g')
-    ax3.tick_params('y', colors='g')
-    ax3.spines['right'].set_position(('outward', 60))  # Offset the third y-axis
 
-    # Add legends
-    fig.legend(loc='upper left', bbox_to_anchor=(0.1, 0.9))
-
-    # Format x-axis
-    plt.gcf().autofmt_xdate()
-
+    
+    # Mark vertical lines at the start of each day in the filtered data
+    # Get unique days (as datetime with time 00:00:00)
+    unique_days = pd.to_datetime(df['date'].dt.date.unique())
+    for day in unique_days:
+        ax1.axvline(day, color='purple', linestyle='--', alpha=0.5)
+        # Annotate the day near the top
+        ax1.text(day, ax1.get_ylim()[1], day.strftime('%a %b %d'), 
+                 rotation=90, verticalalignment='bottom', color='purple', fontsize=8)
+    
+    # Combine legends from both axes
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
+    
     plt.title(title)
+    plt.gcf().autofmt_xdate()  # Auto-format date labels
+    plt.tight_layout()
     plt.show()

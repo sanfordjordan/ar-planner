@@ -5,7 +5,7 @@ from csvReader import readFood, readLegs, readWeather
 from clothes import getClothes
 from Food.food import appendFoodNeeded
 from gear import getTAGear, getGear
-from printers import  compare_food_nutrients, print_leg_food, printEventWeather, printLegDetails, printPrevWeather, printShoppingList, printWaterRequirements
+from printers import  compare_food_nutrients, print_leg_food, printEventWeather, printLegDetails, printNextWeather, printPrevWeather, printShoppingList, printWaterRequirements
 from timeUtils import appendTimes
 from users.createUser import createUser
 from utils import set_user_value
@@ -21,7 +21,8 @@ def main():
     appendTimes(legs, raceInfo)
     weather = readWeather()
     #printPrevWeather(weather)
-    printEventWeather(weather, raceInfo)
+    #printEventWeather(weather, raceInfo)
+    printNextWeather(weather)
     #appendTemps(legsData, raceInfo) TODO
     targets, actuals = appendFoodNeeded(legs, foodData, user)
     cleanupGear = getTAGear(legs)

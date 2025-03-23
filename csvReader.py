@@ -49,7 +49,8 @@ def readWeather() -> pd.DataFrame:
     weatherCSV = 'DB/weather.csv'
     if isRecent(weatherCSV):
         print("📄 Reading weather data from CSV...")
-        df = pd.read_csv(weatherCSV)
+        df = pd.read_csv(weatherCSV, parse_dates=['date'])
+        df['date'] = pd.to_datetime(df['date'])
     else:
         print("🌐 Fetching weather data from API...")
         daily_df, hourly_df = callWeatherMan()
@@ -62,10 +63,7 @@ def readWeather() -> pd.DataFrame:
         # Save to CSV
         combined_df.to_csv(weatherCSV, index=False)
         df = combined_df
-        print("✅ Data saved to CSV.")
-
     # df now holds the weather data
-    print(df.head())
     return df
 
 
@@ -73,7 +71,8 @@ def readWeather() -> pd.DataFrame:
 
 # Check if recent
 def isRecent(filepath):
-    if not os.path.exists(filepath):
+    override = False
+    if not os.path.exists(filepath) or override:
         return False
     mod_time = datetime.fromtimestamp(os.path.getmtime(filepath))
     return (datetime.now() - mod_time) < timedelta(hours=1)

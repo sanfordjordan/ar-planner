@@ -18,7 +18,7 @@ def callWeatherMan():
         "longitude": 144.9364853643536,
         "daily": ["sunshine_duration", "rain_sum", "precipitation_probability_max", "temperature_2m_max", "sunrise", "showers_sum", "sunset", "temperature_2m_min", "apparent_temperature_max", "apparent_temperature_min", "precipitation_hours", "precipitation_sum", "daylight_duration"],
         "hourly": ["temperature_2m", "precipitation_probability", "precipitation", "rain", "showers", "cloud_cover", "cloud_cover_high", "cloud_cover_mid", "cloud_cover_low", "wind_speed_10m", "wind_direction_10m", "wind_direction_180m", "temperature_180m", "is_day", "apparent_temperature"],
-        "timezone": "auto",
+        "timezone": "Australia/Sydney",
         "past_days": 7,
         "forecast_days": 16,
     }
@@ -26,10 +26,6 @@ def callWeatherMan():
 
     # Process first location. Add a for-loop for multiple locations or weather models
     response = responses[0]
-    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"Elevation {response.Elevation()} m asl")
-    print(f"Timezone {response.Timezone()}{response.TimezoneAbbreviation()}")
-    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
@@ -56,6 +52,9 @@ def callWeatherMan():
         inclusive = "left"
     )}
 
+    hourly_data['date'] = pd.to_datetime(hourly_data['date'], utc=True)
+    hourly_data['date'] = hourly_data['date'].tz_convert('Australia/Sydney')
+    hourly_data['date'] = hourly_data['date'].tz_localize(None)
     hourly_data["temperature_2m"] = hourly_temperature_2m
     hourly_data["precipitation_probability"] = hourly_precipitation_probability
     hourly_data["precipitation"] = hourly_precipitation
@@ -73,7 +72,6 @@ def callWeatherMan():
     hourly_data["apparent_temperature"] = hourly_apparent_temperature
 
     hourly_dataframe = pd.DataFrame(data = hourly_data)
-    print(hourly_dataframe)
 
     # Process daily data. The order of variables needs to be the same as requested.
     daily = response.Daily()
@@ -97,7 +95,9 @@ def callWeatherMan():
         freq = pd.Timedelta(seconds = daily.Interval()),
         inclusive = "left"
     )}
-
+    daily_data['date'] = pd.to_datetime(daily_data['date'], utc=True)
+    daily_data['date'] = daily_data['date'].tz_convert('Australia/Sydney')
+    daily_data['date'] = daily_data['date'].tz_localize(None)
     daily_data["sunshine_duration"] = daily_sunshine_duration
     daily_data["rain_sum"] = daily_rain_sum
     daily_data["precipitation_probability_max"] = daily_precipitation_probability_max
@@ -113,6 +113,5 @@ def callWeatherMan():
     daily_data["daylight_duration"] = daily_daylight_duration
 
     daily_dataframe = pd.DataFrame(data = daily_data)
-    print(daily_dataframe)
     return daily_dataframe, hourly_dataframe
 
