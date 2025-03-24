@@ -163,71 +163,76 @@ def printWeatherHourly(weather, title):
     hWeather = weather[weather['type'] == 'hourly']
     fig, ax1 = plt.subplots(figsize=(15, 7))
     
-    # Plot Actual and Apparent Temperature on ax1
+    # Temperature and Wind Speed on ax1
     ax1.plot(hWeather['date'], hWeather['temperature_2m'], color='blue', marker='o', label='Actual Temperature')
     ax1.plot(hWeather['date'], hWeather['apparent_temperature'], color='red', linestyle='--', marker='x', label='Apparent Temperature')
+    ax1.plot(hWeather['date'], hWeather['wind_speed_10m'], color='orange', linestyle='-.', label='Wind Speed (m/s)')
     ax1.set_xlabel("Time")
-    ax1.set_ylabel("Temperature (°C)", color='black')
+    ax1.set_ylabel("Temperature (°C) / Wind Speed (m/s)", color='black')
     ax1.tick_params(axis='y', labelcolor='black')
+    ax1.set_ylim(0, 40)
     
-    # Find the min and max temperature for labeling
-    min_temp = hWeather['temperature_2m'].min()
-    max_temp = hWeather['temperature_2m'].max()
-    
-    # Ensure there's valid data before accessing the min/max time
+    # Min & Max Temp annotations
     if not hWeather.empty:
+        min_temp = hWeather['temperature_2m'].min()
+        max_temp = hWeather['temperature_2m'].max()
         min_temp_time = hWeather['date'][hWeather['temperature_2m'].idxmin()]
         max_temp_time = hWeather['date'][hWeather['temperature_2m'].idxmax()]
-
-        # Annotate min and max temperature
         ax1.annotate(f'Min Temp: {min_temp}°C', xy=(min_temp_time, min_temp), xytext=(min_temp_time, min_temp + 2),
                      arrowprops=dict(facecolor='blue', arrowstyle='->'), fontsize=10, color='blue')
         ax1.annotate(f'Max Temp: {max_temp}°C', xy=(max_temp_time, max_temp), xytext=(max_temp_time, max_temp - 2),
                      arrowprops=dict(facecolor='red', arrowstyle='->'), fontsize=10, color='red')
 
-    # Create a secondary axis for precipitation and probability
+    # Precipitation on ax2
     ax2 = ax1.twinx()
     ax2.bar(hWeather['date'], hWeather['precipitation'], color='deepskyblue', alpha=1, width=0.03, label='Precipitation (mm)')
-    ax2.plot(hWeather['date'], hWeather['precipitation_probability'], color='green', linestyle=':', marker='s', label='Precipitation Probability (%)')
-    ax2.set_ylabel("Precipitation / Probability", color='black')
-    ax2.tick_params(axis='y', labelcolor='black')
-    
-    # Add Cloud Cover as a bar chart overlay on a new axis
-    ax3 = ax1.twinx()  # Create another axis for cloud cover
-    ax3.spines['right'].set_position(('outward', 60))  # Move this axis to avoid overlap
-    cloud_cover_values = hWeather['cloud_cover'].values / 100  # Normalize the cloud cover values to between 0 and 1
-    for i, date in enumerate(hWeather['date']):
-        ax3.bar(date, hWeather['cloud_cover'].iloc[i], 
-                color='lightgray', 
-                alpha=cloud_cover_values[i],  # Apply the alpha gradient based on cloud cover percentage
-                width=0.042, 
-                zorder=-1)  # No label for cloud cover
+    ax2.set_ylabel("Precipitation (mm)", color='deepskyblue')
+    ax2.tick_params(axis='y', labelcolor='deepskyblue')
+    ax2.set_ylim(0, 2)
 
-    # Plot wind speed on ax1 with a second y-axis (right)
+    # Precipitation Probability on ax3
+    ax3 = ax1.twinx()
+    ax3.plot(hWeather['date'], hWeather['precipitation_probability'], color='green', linestyle=':', marker='s', label='Precipitation Probability (%)')
+    ax3.spines['right'].set_position(('outward', 60))  # Move outwards to avoid overlap
+    ax3.set_ylabel("Precipitation Probability (%)", color='green')
+    ax3.tick_params(axis='y', labelcolor='green')
+    ax3.set_ylim(0, 100)
+
+    # Cloud Cover Bars at back
     ax4 = ax1.twinx()
-    ax4.plot(hWeather['date'], hWeather['wind_speed_10m'], color='orange', linestyle='-.', label='Wind Speed (m/s)')
-    ax4.set_ylabel("Wind Speed (m/s)", color='orange')
-    ax4.tick_params(axis='y', labelcolor='orange')
+    ax4.spines['right'].set_position(('outward', 120))  # Further out to avoid clutter
+    for i, date in enumerate(hWeather['date']):
+        ax4.bar(date, hWeather['cloud_cover'].iloc[i], 
+                color='lightgray', 
+                alpha=0.5,
+                width=0.042, 
+                zorder=-1)
+    # Hide cloud cover axis
+    ax4.spines['right'].set_visible(False)
+    ax4.tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
 
-    # Set x-ticks every 3 hours and label them by hour only
+    # X-ticks every 3 hours
     ax1.set_xticks(hWeather['date'][::3])
     ax1.set_xticklabels([dt.strftime('%H') for dt in hWeather['date'][::3]], rotation=45)
 
-    # Mark vertical lines at the start of each day in the filtered data
+    # Vertical lines for days
     unique_days = pd.to_datetime(hWeather['date'].dt.date.unique())
     for day in unique_days:
         ax1.axvline(day, color='purple', linestyle='--', alpha=0.5)
         ax1.text(day, ax1.get_ylim()[1], day.strftime('%a %b %d'), 
                  rotation=90, verticalalignment='bottom', color='purple', fontsize=8)
     
-    # Combine legends from all axes
+    # Add Cloud Cover to legend
+    cloud_cover_patch = plt.Line2D([0], [0], color='lightgray', alpha=0.5, lw=4, label='Cloud Cover')
+    
+    # Combine all legends
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
-    lines4, labels4 = ax4.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2 + lines4, labels1 + labels2 + labels4, loc='upper left')
+    lines3, labels3 = ax3.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2 + lines3 + [cloud_cover_patch], labels1 + labels2 + labels3 + ['Cloud Cover'], loc='upper left')
 
-    # Title and layout
+    # Title & Layout
     plt.title(title)
-    plt.gcf().autofmt_xdate()  # Auto-format date labels
+    plt.gcf().autofmt_xdate()
     plt.tight_layout()
     plt.show()
