@@ -3,33 +3,32 @@ from typing import List
 from Objects.legObject import Leg
 
 
-def getGear(leg):
+def appendGear(leg: Leg):
     gear = []
     for hikeGear in calcHikingGear(leg): gear.append(hikeGear)
     for kayakGear in calcKayakGear(leg): gear.append(kayakGear)
     for bikeGear in calcBikeGear(leg): gear.append(bikeGear)
-
-    return gear  
+    leg.gear = gear
   
   
-def calcHikingGear(leg):
+def calcHikingGear(leg: Leg):
     hikeGear = []
     if leg.discipline != 'Hike': return []
     if leg.elevation > 500: hikeGear.append('hiking poles')
     return hikeGear
 
-def calcKayakGear(leg):
+def calcKayakGear(leg: Leg):
     kayakGear = ['kayak paddles', 'kayak seats', 'kayak handle', 'dry bags', 'throw rope']
     if leg.discipline != 'Kayak': return []
     #if night, glowsticks
     return kayakGear
 
-def calcBikeGear(leg):
+def calcBikeGear(leg: Leg):
     bikeGear = ['bike torch', 'map board']
     if leg.discipline != 'Bike': return []
     return bikeGear
 
-def getTAGear(legs: List[Leg]):
+def appendTAGear(legs: List[Leg]):
     """Determines the gear needed in TA"""
     gearTA = []
     
@@ -44,5 +43,4 @@ def getTAGear(legs: List[Leg]):
         prevLeg= legs[index-1]
         if prevLeg.discipline == "Kayak":
             gearTA.extend(["towel", "empty garbage bag"])
-        
-    return gearTA
+        leg.gear = gearTA

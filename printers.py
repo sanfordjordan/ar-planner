@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from typing import List
 from Food.food import nutrient_difference
+from Objects.clothingObject import Clothing
 from Objects.foodObject import Food
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
@@ -236,3 +237,34 @@ def printWeatherHourly(weather, title):
     plt.gcf().autofmt_xdate()
     plt.tight_layout()
     plt.show()
+
+
+def printClothing(clothing: Clothing):
+    print("----- Clothing To Wear -----")
+    
+    if clothing.head:
+        print("🧢 Head:")
+        for item in clothing.head:
+            print(f"   - {item}")
+    
+    if clothing.body:
+        print("👕 Body:")
+        for item in clothing.body:
+            print(f"   - {item}")
+    
+    if clothing.hand:
+        print("🧤 Hands:")
+        for item in clothing.hand:
+            print(f"   - {item}")
+    
+    if clothing.legs:
+        print("🩳 Legs:")
+        for item in clothing.legs:
+            print(f"   - {item}")
+    
+    if clothing.feet:
+        print("👟 Feet:")
+        for item in clothing.feet:
+            print(f"   - {item}")
+    
+    print("------------------------")

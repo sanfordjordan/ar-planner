@@ -9,7 +9,8 @@ class Leg:
     self.shortTime = legStuff[2]
     self.longTime = legStuff[3]
     self.elevation = int(legStuff[4])
-    self.rapids = legStuff[6]
+    self.boxes = '' #Box(legStuff[5])
+    self.kayakType = legStuff[6]
     self.minTemp = 10
     self.maxTemp = 20
     self.startTime = datetime(2001, 6, 19, 0, 0)
@@ -21,3 +22,8 @@ class Leg:
     self.food = []
     self.spareSJ = 0
     self.weather = None
+    self.clothing = None
+    self.gear = None
+    self.TASteps = []
+    self.batteries = 0
+    

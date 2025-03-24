@@ -1,43 +1,60 @@
-def getClothes(leg):
-    clothing = []
-    if isHelmet(leg): clothing.append('helmet')
-    if isHat(leg): clothing.append('hat')
-    if isSunglasses(leg): clothing.append('sunglasses')
-    if isBuff(leg): clothing.append('buff')
-    if isMapCase(leg): clothing.append('map case')
-    for top in calcTops(leg): clothing.append(top)
-    clothing.append('watch')
-    if isThumbpass(leg): clothing.append('thumbpass')
-    clothing.append(calcGloves(leg))
-    for bottom in calcBottoms(leg): clothing.append(bottom)
-    for footwear in calcFeet(leg): clothing.append(footwear) 
-    return clothing  
+from Objects.clothingObject import Clothing
+from Objects.legObject import Leg
+
+
+def appendClothes(leg: Leg):
+    clothing = Clothing()
+    if isHat(leg): clothing.head.append('sun hat')
+    if isHelmet(leg): clothing.head.append('helmet')
+    if isSunglasses(leg): clothing.head.append('sunglasses')
+    if isBuff(leg): clothing.head.append('buff')
+    if isHeadTorch(leg): clothing.head.append('head torch')
+    if isMapCase(leg): clothing.head.append('map case')
+
+    for top in calcTops(leg): clothing.body.append(top)
+    clothing.hand.append('watch')
+    if isThumbpass(leg): clothing.hand.append('thumbpass')
+    gloves = calcGloves(leg)
+    if gloves is not None: clothing.hand.append(gloves)
+    for bottom in calcBottoms(leg): clothing.legs.append(bottom)
+    for footwear in calcFeet(leg): clothing.feet.append(footwear) 
+    leg.clothing = clothing  
   
   
-def isHelmet(leg):
+def isHelmet(leg: Leg):
+   #If biking or ocean kayaking
    if leg.discipline == 'Bike': return True
-   if leg.rapids == 'Y': return True
+   if leg.kayakType == 'R': return True
    return False
 
-def isHat(leg):
-   #weather scrape, time
-   return True
+def isHat(leg: Leg):
+    #If some daytime
+    return (leg.weather['is_day'] == 1).any()
 
-def isSunglasses(leg):
-    #weather, time
-    #if sunny, if kayaking ocean
-   return False
+def isSunglasses(leg: Leg):
+    #If ocean kayaking OR daytime and not cloudy
+    if leg.kayakType == 'O': return True
+    
+    if 'is_day' in leg.weather.columns and 'cloud_cover' in leg.weather.columns:
+        daytime = leg.weather[leg.weather['is_day'] == 1]
+        if not daytime.empty and (daytime['cloud_cover'] < 30).any():
+            return True
+    return False
 
-def isBuff(leg):
-    return leg.minTemp <= 22
+def isBuff(leg: Leg):
+    return leg.minTemp <= 20
 
-def isMapCase(leg):
+def isHeadTorch(leg: Leg):
+    #If some daytime
+    return (leg.weather['is_day'] == 0).any()
+
+def isMapCase(leg: Leg):
     return leg.discipline == 'Kayak'
 
-def calcTops(leg):
+def calcTops(leg: Leg):
     tops = []
     if leg.discipline == 'Kayak':
-        if leg.rapids == True:
+        if leg.kayakType == 'R':
             if leg.minTemp <= 16: tops.append('wetsuit')
             else:
                 tops.append('shirt')
@@ -60,7 +77,7 @@ def calcTops(leg):
         if leg.minTemp <= 17: tops.append('rainjacket')
         elif leg.minTemp <= 22: tops.append('arm warmers')
         
-    if leg.discipline == 'hike':
+    if leg.discipline == 'Hike':
         tops.append('hike shirt')
         if leg.minTemp <= 4: tops.append('fleece')
         if leg.minTemp <= 9: tops.append('thermal')
@@ -68,22 +85,22 @@ def calcTops(leg):
         
     return tops
 
-def isThumbpass(leg):
+def isThumbpass(leg: Leg):
     return leg.discipline == 'Hike'
 
-def calcGloves(leg):
+def calcGloves(leg: Leg):
     if leg.discipline == 'Bike':
         if leg.minTemp <= 10: return 'full bike glove'
         return 'fingerless gloves'
     if leg.discipline == 'Kayak': return 'kayak gloves'
     if leg.discipline == 'Trek': return 'any glove'
-    return ''
+    return None
 
-def calcBottoms(leg):
+def calcBottoms(leg: Leg):
     bottoms = ['underwear']
     if leg.discipline == 'Kayak':
         bottoms.append('leg compass')
-        if leg.rapids == True:
+        if leg.kayakType == 'R':
             if leg.minTemp <= 16: bottoms.append('wetsuit')
             else:
                 if leg.minTemp <= 15: bottoms.append('wetsuit pants')
@@ -103,7 +120,7 @@ def calcBottoms(leg):
         if leg.minTemp <= 10: bottoms.append('rain pants')
         if leg.minTemp <= 22: bottoms.append('leg warmers')
         
-    if leg.discipline == 'hike':
+    if leg.discipline == 'Hike':
         bottoms.append('shorts')
         bottoms.append('gaiters')
         if leg.minTemp <= 4: bottoms.append('thermal')
@@ -113,16 +130,16 @@ def calcBottoms(leg):
     return bottoms
 
 
-def calcFeet(leg):
+def calcFeet(leg: Leg):
     feet = ['socks']
     if leg.discipline == 'Kayak':
-        if leg.rapids == True: feet.append('old shoes')
-        else: feet.append('water shoes')
+        if leg.kayakType == 'R': feet.append('old shoes')
+        else: feet = ['water shoes']
     
     if leg.discipline == 'Bike':
         feet.append('bike shoes')
         
-    if leg.discipline == 'hike':
+    if leg.discipline == 'Hike':
         feet.append('trail runners')
   
     return feet
