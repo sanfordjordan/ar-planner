@@ -8,6 +8,7 @@ def appendGear(leg: Leg):
     for hikeGear in calcHikingGear(leg): gear.append(hikeGear)
     for kayakGear in calcKayakGear(leg): gear.append(kayakGear)
     for bikeGear in calcBikeGear(leg): gear.append(bikeGear)
+    if leg.batteries > 0: gear.append(f"{leg.batteries} batteries")
     leg.gear = gear
   
   
@@ -39,6 +40,7 @@ def appendTAGear(legs: List[Leg]):
             gearTA.extend(["tent", "sleeping bag"])
 
         nextLeg = legs[index+1]
+        if nextLeg.chargeBikeTorch: gearTA.append('bike torch charger')
 
         prevLeg= legs[index-1]
         if prevLeg.discipline == "Kayak":

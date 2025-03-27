@@ -1,13 +1,11 @@
 from typing import List
 from Objects.clothingObject import Clothing
-
 from Objects.legObject import Leg
 
-def calcAllTASteps(legs: List[Leg]) -> list:
+def calcAllTASteps(legs: List[Leg]):
     for i, leg in enumerate(legs):
         if leg.discipline == 'TA': 
             leg.steps = calcTASteps(legs[i-1], leg, legs[i+1])
-    print(legs[1].steps)
 
 def calcTASteps(prev_leg: Leg, currentTA: Leg, next_leg: Leg) -> list:
     def formatClothingChange(prefix: str, items: list) -> str:

@@ -1,6 +1,10 @@
 # ar-planner
+
 Plans AR logistics for us so we don't have to.
 
-Need to add time casting and get that going once i get internet
-
-yep
+packages:
+python 3.9+
+pip install pandas
+pip install matplotlib
+pip install openmeteo-requests
+pip install requests-cache retry-requests numpy pandas

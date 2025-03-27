@@ -9,7 +9,7 @@ class Leg:
     self.shortTime = legStuff[2]
     self.longTime = legStuff[3]
     self.elevation = int(legStuff[4])
-    self.boxes = '' #Box(legStuff[5])
+    self.boxes = Box(legStuff[5])
     self.kayakType = legStuff[6]
     self.minTemp = 10
     self.maxTemp = 20
@@ -26,4 +26,5 @@ class Leg:
     self.gear = None
     self.TASteps = []
     self.batteries = 0
+    self.chargeBikeTorch = False
     

@@ -6,6 +6,7 @@ from csvReader import readFood, readLegs, readWeather
 from clothes import appendClothes
 from Food.food import appendFoodNeeded
 from gear import appendTAGear, appendGear
+from gearBoxes import calcBoxes
 from printers import  compare_food_nutrients, print_leg_food, printClothing, printEventWeather, printLegDetails, printLegWeather, printNextWeather, printPrevWeather, printShoppingList, printWaterRequirements
 from stepsTA import calcAllTASteps
 from timeUtils import appendTimes
@@ -25,15 +26,19 @@ def main():
     weather = readWeather()
     appendTemps(legs, weather)
     targets, actuals = appendFoodNeeded(legs, foodData, user)
+    calcTorchBatteries(legs)
     appendTAGear(legs)
+
     for index, leg in enumerate(legs):
         if leg.discipline != 'TA': 
             appendClothes(leg)
-            appendGear(leg)   
+            appendGear(leg)
+    calcBoxes(legs) 
     calcAllTASteps(legs)
-    thing = calcTorchBatteries(legs)
+    
     for index, leg in enumerate(legs):
        print(leg.number, leg.discipline, leg.batteries)
+       
     #printClothing(legs[8].clothing)
     #printLegDetails(legs)
     #printWaterRequirements(legs)

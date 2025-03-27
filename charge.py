@@ -38,11 +38,4 @@ def calcTorchBatteries(legs: List[Leg]):
             if next_bike_leg:
                 next_bike_night_hours = next_bike_leg.weather['is_day'].value_counts().get(0, 0)
                 if bike_torch_life < next_bike_night_hours and bike_torch_life < 0.75 * BIKE_TORCH_BATTERY_LIFE:
-                        bike_torch_charge_legs.append(legs[i+2].number)
-            
-    print(bike_torch_charge_legs)
-    
-    return {
-        'spare_head_batteries': spare_head_batteries,
-        'spare_bike_batteries': bike_torch_charge_legs
-    }
+                        legs[i+2].chargeBikeTorch = True
