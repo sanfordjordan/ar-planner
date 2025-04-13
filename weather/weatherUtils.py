@@ -13,4 +13,5 @@ def appendTemps(legs: List[Leg], weather: DataFrame):
                                      & (hourly_weather['date'] <= leg.finishTime + pd.Timedelta(minutes=30))]
         leg.minTemp = leg.weather['temperature_2m'].min()
         leg.maxTemp = leg.weather['temperature_2m'].max()
+        leg.avgTemp = leg.weather['temperature_2m'].mean()
         

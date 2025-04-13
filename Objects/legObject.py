@@ -16,7 +16,7 @@ class Leg:
     self.startTime = datetime(2001, 6, 19, 0, 0)
     self.finishTime = datetime(2001, 6, 19, 0, 0)
     self.avgTime =  timedelta(minutes=0)
-    self.avgTemp = 20
+    self.avgTemp = 0
     self.waterReq = 0
     self.sleepDuring = False
     self.food = []

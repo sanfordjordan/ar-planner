@@ -39,10 +39,10 @@ def main():
     for index, leg in enumerate(legs):
        print(leg.number, leg.discipline, leg.batteries)
        
-    #printClothing(legs[8].clothing)
     #printLegDetails(legs)
     #printWaterRequirements(legs)
     #print_leg_food(legs)
+    #printClothing(legs[0].clothing)
     #compare_food_nutrients(targets, actuals)
     #printShoppingList(legs)
     #printPrevWeather(weather)
