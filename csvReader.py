@@ -5,6 +5,7 @@ import pandas as pd
 from typing import List, Tuple
 from Objects.boxesObject import Box
 from Objects.foodObject import Food
+from Objects.gearObject import Gear
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
 from datetime import datetime, timedelta
@@ -29,7 +30,7 @@ def readLegs()-> Tuple[List[Leg], RaceInfo]:
 
             if index >= 3:
                 if index > 3:
-                    TAInfo = [index-3, 'TA', '', '', 0, Box(line[5]), '']
+                    TAInfo = [line[0], 'TA', '', '', 0, Box(line[5]), '']
                     inputData.append(Leg(TAInfo))
                 inputData.append(Leg(line))
                 
@@ -66,7 +67,16 @@ def readWeather() -> pd.DataFrame:
     # df now holds the weather data
     return df
 
+def readGear()-> List[Gear]:
+    gearList = []
 
+    with open('DB/gearDB.csv', mode ='r')as file:
+        csvFile = csv.reader(file)
+        for index, line in enumerate(csvFile):
+            if index >= 1:
+                gearList.append(Gear(line))
+                
+    return gearList
 
 
 # Check if recent

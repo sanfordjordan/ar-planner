@@ -1,6 +1,6 @@
 class Box:
     def __init__(self, boxes):
-        self.boxesArray = boxes.split(",") if isinstance(boxes, str) else []
+        self.boxesArray = [b.strip() for b in boxes.split(",")] if isinstance(boxes, str) else []
 
         box_set = {box.strip() for box in self.boxesArray}
 
@@ -19,3 +19,7 @@ class Box:
         self.boxB = []
         self.boxC = []
         self.boxD = []
+
+
+    def __repr__(self):
+        return f"Box({', '.join(self.boxesArray)})"

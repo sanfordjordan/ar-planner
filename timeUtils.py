@@ -4,16 +4,16 @@ from typing import List
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
 
-def appendTimes(inputData: List[Leg], raceInfo: RaceInfo):
+def appendTimes(legs: List[Leg], raceInfo: RaceInfo):
     prevSleptNight = None
     prevLeg = None
     nextLeg = None
     sleepDuring = False
     raceStart = raceInfo.startDateTime
 
-    for index, leg in enumerate(inputData):
-        if index > 0: prevLeg = inputData[index - 1]
-        if index < len(inputData)-1: nextLeg = inputData[index + 1]
+    for index, leg in enumerate(legs):
+        if index > 0: prevLeg = legs[index - 1]
+        if index < len(legs)-1: nextLeg = legs[index + 1]
         if  leg.discipline == 'TA':
             currentStart, currentFinish, prevSleptNight, sleepDuring = calcTATime(prevLeg, nextLeg, prevSleptNight, raceStart)
         else:
@@ -24,7 +24,7 @@ def appendTimes(inputData: List[Leg], raceInfo: RaceInfo):
         leg.avgTime = (currentFinish - currentStart).total_seconds() / 3600  # Convert to hours
         leg.sleepDuring = sleepDuring
         sleepDuring = False
-    raceInfo.finishDateTime = inputData[-1].finishTime
+    raceInfo.finishDateTime = legs[-1].finishTime
 
 def parse_time_string(time_str: str) -> timedelta:
     """Converts a 'hh:mm' string into a timedelta object."""

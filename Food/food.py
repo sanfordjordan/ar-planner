@@ -5,6 +5,7 @@ from Food.noDoze import appendNoDoze
 from Objects.foodObject import Food
 from Objects.legObject import Leg
 from Objects.userObject import User
+from utils import getThing
 from water import appendWaterNeeded
 
 def appendFoodNeeded(legs: List[Leg], foodData: List[Food], user: User):
@@ -26,7 +27,7 @@ def appendFoodNeeded(legs: List[Leg], foodData: List[Food], user: User):
         #Super juice
         caloriesToGo = caloriesNeeded - realCalories
         if caloriesToGo > 0 and leg.discipline != 'TA':
-            SJInfo = next(food for food in foodData if food.name == '4hr fuel')
+            SJInfo = getThing('4hr fuel', foodData)
             SJCalories = calcCalories(SJInfo)
             SJRequired = round(caloriesToGo / SJCalories, 1)
             food.append((SJInfo.name, SJRequired))
@@ -39,7 +40,7 @@ def appendFoodNeeded(legs: List[Leg], foodData: List[Food], user: User):
         #Salt
         saltNeeded = target.sodium - totalNutrients.sodium
         if saltNeeded > 0 and leg.discipline != 'TA':
-            saltInfo = next(food for food in foodData if food.name == 'SaltStick Caps 100')
+            saltInfo = getThing('SaltStick Caps 100', foodData)
             saltPillsNeeded = round(saltNeeded/saltInfo.sodium)
             if saltPillsNeeded > 0: food.append((saltInfo.name, saltPillsNeeded))
             totalNutrients = calcActualNutrients(food,  foodData)
@@ -106,7 +107,7 @@ def calcActualNutrients(foodNeeded: list, foodData: List[Food]):
     foodNames = ['carbs', 'protein', 'fat', 'sodium', 'magnesium', 'potassium', 'calcium', 'water']
 
     for foodItem in foodNeeded:
-        itemInfo = next(food for food in foodData if food.name == foodItem[0])
+        itemInfo = getThing(foodItem[0], foodData)
         for nutrient in foodNames:
             setattr(foodActual, nutrient, getattr(foodActual, nutrient) + getattr(itemInfo, nutrient) * foodItem[1])
     return foodActual

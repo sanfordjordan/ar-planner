@@ -4,7 +4,7 @@ from Objects.boxesObject import Box
 
 class Leg:
   def __init__(self, legStuff):
-    self.number = legStuff[0]
+    self.number = int(legStuff[0])
     self.discipline = legStuff[1]
     self.shortTime = legStuff[2]
     self.longTime = legStuff[3]

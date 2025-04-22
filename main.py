@@ -2,10 +2,10 @@ from typing import List
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
 from charge import calcTorchBatteries
-from csvReader import readFood, readLegs, readWeather
+from csvReader import readFood, readGear, readLegs, readWeather
 from clothes import appendClothes
 from Food.food import appendFoodNeeded
-from gear import appendTAGear, appendGear
+from gear import appendTAGear, appendGear, apppendGear2
 from gearBoxes import calcBoxes
 from printers import  compare_food_nutrients, print_leg_food, printClothing, printEventWeather, printLegDetails, printLegWeather, printNextWeather, printPrevWeather, printShoppingList, printWaterRequirements
 from stepsTA import calcAllTASteps
@@ -22,22 +22,26 @@ def main():
     user = createUser(userName)
     legs, raceInfo = readLegs()
     foodData = readFood()
-    appendTimes(legs, raceInfo)
+    gear = readGear()
     weather = readWeather()
+
+    
+    appendTimes(legs, raceInfo)
     appendTemps(legs, weather)
     targets, actuals = appendFoodNeeded(legs, foodData, user)
     calcTorchBatteries(legs)
+    apppendGear2(legs, gear)
     appendTAGear(legs)
 
     for index, leg in enumerate(legs):
         if leg.discipline != 'TA': 
             appendClothes(leg)
             appendGear(leg)
-    calcBoxes(legs) 
+    #calcBoxes(legs) 
     calcAllTASteps(legs)
     
-    for index, leg in enumerate(legs):
-       print(leg.number, leg.discipline, leg.batteries)
+    # for index, leg in enumerate(legs):
+    #    print(leg.number, leg.discipline, leg.batteries)
        
     #printLegDetails(legs)
     #printWaterRequirements(legs)
