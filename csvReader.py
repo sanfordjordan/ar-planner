@@ -30,7 +30,7 @@ def readLegs()-> Tuple[List[Leg], RaceInfo]:
 
             if index >= 3:
                 if index > 3:
-                    TAInfo = [line[0], 'TA', '', '', 0, Box(line[5]), '']
+                    TAInfo = [int(line[0])-1, 'TA', '', '', 0, line[5], '']
                     inputData.append(Leg(TAInfo))
                 inputData.append(Leg(line))
                 
