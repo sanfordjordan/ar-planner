@@ -90,7 +90,7 @@ def plan_item(gear: Gear, legs: List[Leg]) -> List[ItemPlan]:
     item_plans = []
     for item_num in range(gear.amount):
         possible_plans = generate_possible_plans(gear, activity_legs, item_num)
-        best_plan = select_best_plan(possible_plans, activity_legs)
+        best_plan = min(possible_plans, key=lambda x: x.score)
         item_plans.append(best_plan)
     
     best_plan = min(item_plans, key=lambda x: x.score)
@@ -107,14 +107,14 @@ def generate_possible_plans(gear: Gear, legs: List[Leg], item_num: int) -> List[
     
     # First, generate paths from leg 1 to first required leg
     first_required_leg = required_legs[0]
-    initial_paths = find_path(1, first_required_leg, legs, required_legs)
+    initial_paths = find_path(1, first_required_leg, legs)
     all_segment_paths.append(initial_paths)
     
     # Then generate paths between consecutive required legs
     for i in range(len(required_legs) - 1):
         start_leg = required_legs[i]
         end_leg = required_legs[i + 1]
-        segment_paths = find_path(start_leg, end_leg, legs, required_legs)
+        segment_paths = find_path(start_leg, end_leg, legs)
         all_segment_paths.append(segment_paths)
     # Generate all possible combinations of path segments
     possible_plans = []
@@ -135,8 +135,9 @@ def generate_possible_plans(gear: Gear, legs: List[Leg], item_num: int) -> List[
                 else:
                     item_location[start - 1] = action
             
-            # Make sure the final required leg is marked as 'use'
-            item_location[required_legs[-1] - 1] = 'use'
+           # Make sure all required legs are marked as 'use'
+            for required_leg in required_legs:
+                item_location[required_leg - 1] = 'use'
             
             # Create ItemPlan object with the item_location and calculate its score
             score = score_plan(item_location, activity_legs)
@@ -158,98 +159,80 @@ def find_paths_between_required_legs(start: int, end: int, activity_legs: List[L
     """Find all possible paths between two required legs using DFS"""
     all_paths = []
     
+    def dfs(current_leg: int, current_path: List[Tuple[str, int, int]]):
+        if current_leg == end:
+            all_paths.append(current_path.copy())
+            return
+            
+        # Get boxes available at this leg
+        available_boxes = activity_legs[current_leg - 1].boxes.boxesArray
+        
+        # Can always carry
+        carry_path = current_path + [('carry', current_leg, current_leg + 1)]
+        dfs(current_leg + 1, carry_path)
+        
+        # Can put in any available box
+        for box in available_boxes:
+            box_path = current_path + [(box, current_leg, current_leg + 1)]
+            dfs(current_leg + 1, box_path)
+    
+    dfs(start, [])
+    return all_paths
+
+
+
+
+def find_path(start: int, end: int, legs: List[Leg]) -> List[List[Tuple[str, int, int]]]:
+    """Find all possible paths between two required legs using DFS"""
+    all_paths = []
     def dfs(current_leg: int, current_path: List[Tuple[str, int, int]], current_box: Optional[str] = None):
         if current_leg == end:
             all_paths.append(current_path.copy())
             return
             
-        # Get available boxes at the NEXT leg (where the item will actually be)
-        next_leg_idx = current_leg  # Because activity_legs is 0-based
-        available_boxes = activity_legs[next_leg_idx].boxes.boxesArray
-        
-        if current_leg == start:
-            if start in required_legs:
-                dfs(current_leg + 1, current_path + [('use', current_leg, current_leg + 1)], None)
-            else:
-                # Can carry
+        # Get boxes available at this leg
+        current_boxes = legs[current_leg - 1].boxes.boxesArray
+        next_boxes = legs[current_leg].boxes.boxesArray  # Boxes available at next leg
+
+        if current_box:
+            # If item is in a box, we can only continue if that box is available now
+            if current_box in current_boxes:
+                if current_box in next_boxes:
+                    # Can keep it in the same box if available next leg
+                    box_path = current_path + [(current_box, current_leg, current_leg + 1)]
+                    dfs(current_leg + 1, box_path, current_box)
+                # Can take it out and carry
                 carry_path = current_path + [('carry', current_leg, current_leg + 1)]
                 dfs(current_leg + 1, carry_path, None)
-                
-                # Can put in any available box
-                for box in available_boxes:
-                    box_path = current_path + [(box, current_leg, current_leg + 1)]  # Removed 'Box ' prefix
-                    dfs(current_leg + 1, box_path, box)
-            return
-        
-        # Get available boxes at current leg (using 0-based index for activity_legs)
-        available_boxes = activity_legs[current_leg - 1].boxes.boxesArray
-        
-        # Option 1: If carrying item (not in box)
-        if current_box is None:
-            # Continue carrying
+            else:
+                # Box not available, can't access item
+                return
+        else:
+            # Item is being carried, can either keep carrying or put in a box
             carry_path = current_path + [('carry', current_leg, current_leg + 1)]
             dfs(current_leg + 1, carry_path, None)
             
-            # Try putting in any available box
-            for box in available_boxes:
-                box_path = current_path + [(box, current_leg, current_leg + 1)]  # Removed 'Box ' prefix
-                dfs(current_leg + 1, box_path, box)
-        
-        # Option 2: If item is in a box
-        else:
-            # If box is available here
-            if current_box in available_boxes:
-                # Can take it out and carry
-                new_path = current_path + [('take_from_box', current_leg, current_leg), 
-                                         ('carry', current_leg, current_leg + 1)]
-                dfs(current_leg + 1, new_path, None)
-                
-                # Can take out and put in different box
-                for box in available_boxes:
-                    if box != current_box:
-                        new_path = current_path + [('take_from_box', current_leg, current_leg),
-                                                 (box, current_leg, current_leg + 1)]  # Removed 'Box ' prefix
-                        dfs(current_leg + 1, new_path, box)
-                
-                # Can keep in same box
-                box_path = current_path + [(current_box, current_leg, current_leg + 1)]  # Removed 'Box ' prefix
-                dfs(current_leg + 1, box_path, current_box)
-            else:
-                # Box not available here, must carry
-                carry_path = current_path + [('carry', current_leg, current_leg + 1)]
-                dfs(current_leg + 1, carry_path, None)
+            # Can put in any available box
+            for box in current_boxes:
+                if box in next_boxes:  # Only if box will be available next leg
+                    box_path = current_path + [(box, current_leg, current_leg + 1)]
+                    dfs(current_leg + 1, box_path, box)
     
     dfs(start, [], None)
     return all_paths
 
-def find_path(start: int, end: int, legs: List[Leg], required_legs: List[int]) -> List[List[Tuple[str, int, int]]]:
-    """Find all possible paths between required legs"""
-    #print(f"\nFinding paths from leg {start} to {end}")
-    
-    # Get all possible paths for this segment
-    possible_paths = find_paths_between_required_legs(start, end, legs, required_legs)
-    
-    # Print all found paths
-    #for i, path in enumerate(possible_paths):
-        #print(f"Path option {i + 1}: {path}")
-    
-    return possible_paths
 
 def score_plan(plan: List[str], legs: List[Leg]) -> float:
     """Score a complete plan based on box usage and carrying penalties"""
     score = 0
     
     for leg_num, location in enumerate(plan):
-        if location.startswith('Box'):
-            # Box penalties
-            box_multiplier = {
-                'Box A': 1, 'Box B': 1, 'Box C': 1, 'Box D': 1,
-                'Bike Box': 2, 'Paddle Bag': 3
-            }.get(location, 1)
-            score += box_multiplier
+        if location == 'bike': score += 2
+        elif location == 'paddle': score += 3
+        elif location not in ['use', 'carry']:  # Regular boxes
+            score += 1
         
         elif location == 'carry' and leg_num < len(legs):
-            # Carry penalties
             leg = legs[leg_num]
             if leg.discipline != 'TA':
                 multiplier = {
@@ -260,7 +243,3 @@ def score_plan(plan: List[str], legs: List[Leg]) -> float:
                 score += multiplier * float(leg.avgTime)
     
     return score
-
-def select_best_plan(possible_plans: List[ItemPlan], legs: List[Leg]) -> ItemPlan:
-    """Select the best plan based on score"""
-    return min(possible_plans, key=lambda x: x.score)
