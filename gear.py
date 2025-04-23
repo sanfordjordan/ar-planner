@@ -128,18 +128,12 @@ def generate_possible_plans(gear: Gear, legs: List[Leg], item_num: int) -> List[
             
             # Fill in the plan based on the path
             for action, start, end in current_plan:
-                if action.startswith('Box '):
-                    # Item is in a box for this leg
-                    item_location[start - 1] = action
-                elif action == 'use':
-                    # Item is being used
+                if action == 'use':
                     item_location[start - 1] = 'use'
                 elif action == 'carry':
-                    # Item is being carried
                     item_location[start - 1] = 'carry'
-                elif action == 'take_from_box':
-                    # This is a transition action, the next action will determine what happens
-                    continue
+                else:
+                    item_location[start - 1] = action
             
             # Make sure the final required leg is marked as 'use'
             item_location[required_legs[-1] - 1] = 'use'
@@ -183,7 +177,7 @@ def find_paths_between_required_legs(start: int, end: int, activity_legs: List[L
                 
                 # Can put in any available box
                 for box in available_boxes:
-                    box_path = current_path + [(f'Box {box}', current_leg, current_leg + 1)]
+                    box_path = current_path + [(box, current_leg, current_leg + 1)]  # Removed 'Box ' prefix
                     dfs(current_leg + 1, box_path, box)
             return
         
@@ -198,7 +192,7 @@ def find_paths_between_required_legs(start: int, end: int, activity_legs: List[L
             
             # Try putting in any available box
             for box in available_boxes:
-                box_path = current_path + [(f'Box {box}', current_leg, current_leg + 1)]
+                box_path = current_path + [(box, current_leg, current_leg + 1)]  # Removed 'Box ' prefix
                 dfs(current_leg + 1, box_path, box)
         
         # Option 2: If item is in a box
@@ -214,11 +208,11 @@ def find_paths_between_required_legs(start: int, end: int, activity_legs: List[L
                 for box in available_boxes:
                     if box != current_box:
                         new_path = current_path + [('take_from_box', current_leg, current_leg),
-                                                 (f'Box {box}', current_leg, current_leg + 1)]
+                                                 (box, current_leg, current_leg + 1)]  # Removed 'Box ' prefix
                         dfs(current_leg + 1, new_path, box)
                 
                 # Can keep in same box
-                box_path = current_path + [(f'Box {current_box}', current_leg, current_leg + 1)]
+                box_path = current_path + [(current_box, current_leg, current_leg + 1)]  # Removed 'Box ' prefix
                 dfs(current_leg + 1, box_path, current_box)
             else:
                 # Box not available here, must carry
