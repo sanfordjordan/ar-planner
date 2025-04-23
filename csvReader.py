@@ -33,7 +33,7 @@ def readLegs()-> Tuple[List[Leg], RaceInfo]:
                     TAInfo = [int(line[0])-1, 'TA', '', '', 0, line[5], '']
                     inputData.append(Leg(TAInfo))
                 inputData.append(Leg(line))
-                
+    inputData[0].boxes = Box('bike, paddle, A, B, C, D')
     return inputData, raceInfo
 
 def readFood()-> Tuple[List[Leg], RaceInfo]:

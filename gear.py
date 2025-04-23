@@ -1,20 +1,28 @@
 from typing import List, Optional, Set, Tuple
 from Objects.gearObject import Gear
+from Objects.gearRules import GEAR_RULES
 from Objects.legObject import Leg
+from clothes import isHat, isHelmet
 from utils import getThing
 
 
 
-def apppendGear2(legs: List[Leg], gear: List[Gear]):\
+def apppendGear2(legs: List[Leg], gear: List[Gear]):
+    activity_legs = [leg for leg in legs if leg.discipline != 'TA']
 
-    sunHat = getThing('sun hat', gear)
-    for index, leg in enumerate(legs):
-        if leg.discipline == 'TA': continue
-        if ((leg.weather['is_day'] == 1).any()): sunHat.legs.append(leg.number)
-    print(sunHat.legs)
-    a = plan_item(sunHat, legs)
-    print(a)
-
+    for gear_item in gear:
+        if gear_item.name in GEAR_RULES:
+            relevant_legs = [
+                leg.number for leg in activity_legs 
+                if GEAR_RULES[gear_item.name](leg)
+            ]
+            print(relevant_legs)
+            if relevant_legs:
+                gear_item.legs = relevant_legs
+                gear_item.journey = plan_item(gear_item, legs)
+                print(gear_item.name, gear_item.journey)
+    
+    print(gear[2].journey)
 
 def appendGear(leg: Leg):
     gear = []
@@ -85,7 +93,8 @@ def plan_item(gear: Gear, legs: List[Leg]) -> List[ItemPlan]:
         best_plan = select_best_plan(possible_plans, activity_legs)
         item_plans.append(best_plan)
     
-    return item_plans
+    best_plan = min(item_plans, key=lambda x: x.score)
+    return best_plan.item_location
     
 def generate_possible_plans(gear: Gear, legs: List[Leg], item_num: int) -> List[ItemPlan]:
     """Generate all possible valid plans for this copy of the item"""
@@ -95,12 +104,18 @@ def generate_possible_plans(gear: Gear, legs: List[Leg], item_num: int) -> List[
     
     # Generate paths between consecutive required legs
     all_segment_paths = []
+    
+    # First, generate paths from leg 1 to first required leg
+    first_required_leg = required_legs[0]
+    initial_paths = find_path(1, first_required_leg, legs, required_legs)
+    all_segment_paths.append(initial_paths)
+    
+    # Then generate paths between consecutive required legs
     for i in range(len(required_legs) - 1):
         start_leg = required_legs[i]
         end_leg = required_legs[i + 1]
         segment_paths = find_path(start_leg, end_leg, legs, required_legs)
         all_segment_paths.append(segment_paths)
-    
     # Generate all possible combinations of path segments
     possible_plans = []
     
@@ -143,38 +158,37 @@ def generate_possible_plans(gear: Gear, legs: List[Leg], item_num: int) -> List[
     combine_segments([], 0)
     
     return possible_plans
-def get_movement_type(leg_num: int, required_legs: List[int]) -> str:
-    """
-    Determine if the item is being used or carried during this leg
-    Args:
-        leg_num: The leg number to check
-        required_legs: List of legs where the item is required
-    Returns:
-        'use' if the leg requires the item, 'carry' otherwise
-    """
-    return 'use' if leg_num in required_legs else 'carry'
+
 
 def find_paths_between_required_legs(start: int, end: int, activity_legs: List[Leg], required_legs: List[int]) -> List[List[Tuple[str, int, int]]]:
     """Find all possible paths between two required legs using DFS"""
     all_paths = []
     
     def dfs(current_leg: int, current_path: List[Tuple[str, int, int]], current_box: Optional[str] = None):
-        """
-        current_leg: the leg number we're currently at (1-based)
-        current_path: path taken so far
-        current_box: if item is currently in a box, which box it's in
-        """
-        
         if current_leg == end:
             all_paths.append(current_path.copy())
             return
             
+        # Get available boxes at the NEXT leg (where the item will actually be)
+        next_leg_idx = current_leg  # Because activity_legs is 0-based
+        available_boxes = activity_legs[next_leg_idx].boxes.boxesArray
+        
         if current_leg == start:
-            dfs(current_leg + 1, current_path + [('use', current_leg, current_leg + 1)], None)
+            if start in required_legs:
+                dfs(current_leg + 1, current_path + [('use', current_leg, current_leg + 1)], None)
+            else:
+                # Can carry
+                carry_path = current_path + [('carry', current_leg, current_leg + 1)]
+                dfs(current_leg + 1, carry_path, None)
+                
+                # Can put in any available box
+                for box in available_boxes:
+                    box_path = current_path + [(f'Box {box}', current_leg, current_leg + 1)]
+                    dfs(current_leg + 1, box_path, box)
             return
         
         # Get available boxes at current leg (using 0-based index for activity_legs)
-        available_boxes = get_available_boxes(activity_legs[current_leg - 1], activity_legs)
+        available_boxes = activity_legs[current_leg - 1].boxes.boxesArray
         
         # Option 1: If carrying item (not in box)
         if current_box is None:
@@ -216,14 +230,14 @@ def find_paths_between_required_legs(start: int, end: int, activity_legs: List[L
 
 def find_path(start: int, end: int, legs: List[Leg], required_legs: List[int]) -> List[List[Tuple[str, int, int]]]:
     """Find all possible paths between required legs"""
-    print(f"\nFinding paths from leg {start} to {end}")
+    #print(f"\nFinding paths from leg {start} to {end}")
     
     # Get all possible paths for this segment
     possible_paths = find_paths_between_required_legs(start, end, legs, required_legs)
     
     # Print all found paths
-    for i, path in enumerate(possible_paths):
-        print(f"Path option {i + 1}: {path}")
+    #for i, path in enumerate(possible_paths):
+        #print(f"Path option {i + 1}: {path}")
     
     return possible_paths
 
@@ -256,87 +270,3 @@ def score_plan(plan: List[str], legs: List[Leg]) -> float:
 def select_best_plan(possible_plans: List[ItemPlan], legs: List[Leg]) -> ItemPlan:
     """Select the best plan based on score"""
     return min(possible_plans, key=lambda x: x.score)
-
-def convert_path_to_plan(path: List[Tuple[str, int, int]], num_legs: int, required_legs: List[int], legs: List[Leg]) -> List[str]:
-    """Convert a path of movements into a full race plan (only for activity legs)"""
-    plan = ['carry'] * num_legs  # Initialize all positions to 'carry'
-    
-    # First, find all activity legs (non-TA legs)
-    activity_legs = []
-    leg_to_activity = {}
-    activity_index = 0
-    
-    for leg in legs:
-        if leg.discipline != 'TA':
-            activity_legs.append(leg.number)
-            leg_to_activity[leg.number] = activity_index
-            activity_index += 1
-    
-    # Debug print to verify activity legs
-    print(f"All legs disciplines: {[leg.discipline for leg in legs]}")
-    print(f"Activity legs (non-TA): {activity_legs}")
-    print(f"Leg to activity mapping: {leg_to_activity}")
-    
-    # Mark 'use' locations based on required_legs
-    for leg_num in required_legs:
-        if leg_num in leg_to_activity:
-            activity_idx = leg_to_activity[leg_num]
-            if activity_idx < len(plan):
-                plan[activity_idx] = 'use'
-            
-    # Handle box transitions
-    for action, start_leg, end_leg in path:
-        if action not in ['use', 'carry']:
-            # Find activity indices for start and end legs
-            start_idx = None
-            end_idx = None
-            
-            # Look for activity legs near start_leg
-            for leg in range(start_leg - 1, start_leg + 2):
-                if leg in leg_to_activity:
-                    start_idx = leg_to_activity[leg]
-                    break
-                    
-            # Look for activity legs near end_leg
-            for leg in range(end_leg - 1, end_leg + 2):
-                if leg in leg_to_activity:
-                    end_idx = leg_to_activity[leg]
-                    break
-            
-            if start_idx is not None and end_idx is not None:
-                for i in range(start_idx, min(end_idx + 1, len(plan))):
-                    if plan[i] != 'use':  # Don't override 'use' locations
-                        plan[i] = action
-    
-    print(f"Required legs: {required_legs}")
-    print(f"Final plan: {plan}")
-    
-    return plan
-
-def get_available_boxes(leg: Leg, legs: List[Leg]) -> List[str]:
-    """
-    Get list of boxes available at a given leg
-    """
- 
-    if not leg or not leg.boxes:
-        return []
-        
-    available_boxes: List[str] = []
-    box = leg.boxes
-    
-    # Check each box type using the has* properties
-    if box.hasBoxA:
-        available_boxes.append('A')
-    if box.hasBoxB:
-        available_boxes.append('B')
-    if box.hasBoxC:
-        available_boxes.append('C')
-    if box.hasBoxD:
-        available_boxes.append('D')
-    if box.hasBikeBox:
-        available_boxes.append('bike')
-    if box.hasPaddleBag:
-        available_boxes.append('paddle')
-    
-    #print(f"Leg {TA.number} boxes: {available_boxes}")
-    return available_boxes

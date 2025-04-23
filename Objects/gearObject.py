@@ -6,3 +6,4 @@ class Gear:
     self.weight = float(gearStuff[3])
     self.amount = int(gearStuff[4])
     self.legs = []
+    self.journey = []
