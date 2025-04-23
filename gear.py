@@ -101,86 +101,40 @@ def generate_possible_plans(gear: Gear, legs: List[Leg], item_num: int) -> List[
     activity_legs = [leg for leg in legs if leg.discipline != 'TA']
     num_legs = len(activity_legs)
     required_legs = gear.legs
-    
-    # Generate paths between consecutive required legs
     all_segment_paths = []
     
-    # First, generate paths from leg 1 to first required leg
-    first_required_leg = required_legs[0]
-    initial_paths = find_path(1, first_required_leg, legs)
-    all_segment_paths.append(initial_paths)
+    # Get paths from start to first required leg
+    all_segment_paths.append(find_path(1, required_legs[0], legs))
     
-    # Then generate paths between consecutive required legs
+    # Get paths between consecutive required legs
     for i in range(len(required_legs) - 1):
-        start_leg = required_legs[i]
-        end_leg = required_legs[i + 1]
-        segment_paths = find_path(start_leg, end_leg, legs)
-        all_segment_paths.append(segment_paths)
-    # Generate all possible combinations of path segments
+        all_segment_paths.append(find_path(required_legs[i], required_legs[i + 1], legs))
+
     possible_plans = []
     
     def combine_segments(current_plan: List[Tuple[str, int, int]], segment_index: int):
-        """Recursively combine path segments into complete plans"""
-        # If we've used all segments, we have a complete plan
         if segment_index == len(all_segment_paths):
-            # Convert the combined path to a plan array
+            # Create plan array and fill with path actions
             item_location = ['none'] * num_legs
+            for action, start, _ in current_plan:
+                item_location[start - 1] = action
+                
+            # Ensure required legs are marked as 'use'
+            for leg in required_legs:
+                item_location[leg - 1] = 'use'
             
-            # Fill in the plan based on the path
-            for action, start, end in current_plan:
-                if action == 'use':
-                    item_location[start - 1] = 'use'
-                elif action == 'carry':
-                    item_location[start - 1] = 'carry'
-                else:
-                    item_location[start - 1] = action
-            
-           # Make sure all required legs are marked as 'use'
-            for required_leg in required_legs:
-                item_location[required_leg - 1] = 'use'
-            
-            # Create ItemPlan object with the item_location and calculate its score
-            score = score_plan(item_location, activity_legs)
-            item_plan = ItemPlan(item_location=item_location, score=score)
-            possible_plans.append(item_plan)
+            possible_plans.append(ItemPlan(
+                item_location=item_location,
+                score=score_plan(item_location, activity_legs)
+            ))
             return
         
-        # Try each possible path for this segment
+        # Try each path for this segment
         for path in all_segment_paths[segment_index]:
             combine_segments(current_plan + path, segment_index + 1)
     
-    # Start combining segments with empty plan
     combine_segments([], 0)
-    
     return possible_plans
-
-
-def find_paths_between_required_legs(start: int, end: int, activity_legs: List[Leg], required_legs: List[int]) -> List[List[Tuple[str, int, int]]]:
-    """Find all possible paths between two required legs using DFS"""
-    all_paths = []
-    
-    def dfs(current_leg: int, current_path: List[Tuple[str, int, int]]):
-        if current_leg == end:
-            all_paths.append(current_path.copy())
-            return
-            
-        # Get boxes available at this leg
-        available_boxes = activity_legs[current_leg - 1].boxes.boxesArray
-        
-        # Can always carry
-        carry_path = current_path + [('carry', current_leg, current_leg + 1)]
-        dfs(current_leg + 1, carry_path)
-        
-        # Can put in any available box
-        for box in available_boxes:
-            box_path = current_path + [(box, current_leg, current_leg + 1)]
-            dfs(current_leg + 1, box_path)
-    
-    dfs(start, [])
-    return all_paths
-
-
-
 
 def find_path(start: int, end: int, legs: List[Leg]) -> List[List[Tuple[str, int, int]]]:
     """Find all possible paths between two required legs using DFS"""
