@@ -12,33 +12,34 @@ from Objects.raceInfoObject import RaceInfo
 from datetime import datetime, timedelta
 from weather.weather import callWeatherMan
 
-def readLegs()-> Tuple[List[Leg], RaceInfo]:
+def read_legs() -> Tuple[List[Leg], RaceInfo]:
     legs = []
+    race_info = None
 
-    with open('DB/legsDB.csv', mode ='r')as file:
-        csvFile = csv.reader(file)
-        for index, line in enumerate(csvFile):
+    with open('DB/legsDB.csv', mode='r') as file:
+        csv_file = csv.reader(file)
+        for index, line in enumerate(csv_file):
             if line[0] == '': break
             if index == 1:
-                raceInfo = RaceInfo(line)
-
+                race_info = RaceInfo(line)
             if index >= 3:
-                if index > 3:
-                    legs.append(Leg([int(line[0])-1, 'TA', 0, 0, 0, line[5], 0]))
-                legs.append(Leg(line))
-    
-    legs[0].boxes = Box('bike, paddle, A, B, C, D')
-    return legs, raceInfo
+                leg = Leg(line)
+                if index == 3:
+                    leg.boxes = Box('bike, paddle, A, B, C, D')
+                legs.append(leg)
 
-def readFood()-> Tuple[List[Leg], RaceInfo]:
-    foodData = []
+    return legs, race_info
 
-    with open('DB/foodDB.csv', mode ='r')as file:
-        csvFile = csv.reader(file)
-        for index, line in enumerate(csvFile):
-            if index > 0:
-                foodData.append(Food(line))
-    return foodData
+def read_food_data() -> List[Food]:
+    food_data = []
+
+    with open('DB/foodDB.csv', mode='r') as file:
+        csv_file = csv.reader(file)
+        next(csv_file)  # Skip the header
+        for line in csv_file:
+            food_data.append(Food(line))
+
+    return food_data
 
 def readWeather() -> pd.DataFrame:
     weatherCSV = 'DB/weather.csv'

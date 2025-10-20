@@ -3,17 +3,17 @@ from Objects.boxesObject import Box
 
 
 class Leg:
-  def __init__(self, legStuff):
-    self.number = int(legStuff[0])
-    self.discipline = legStuff[1]
-    self.elevation = int(legStuff[4]) if legStuff[4] != '' else 0
-    self.boxes = Box(legStuff[5])
-    self.kayakType = legStuff[6]
+  def __init__(self, line):
+    self.number = int(line[0])
+    self.discipline = line[1]
+    self.elevation = int(line[4]) if line[4] != '' else 0
+    self.boxes = Box(line[5])
+    self.kayakType = line[6]
     self.minTemp = 10
     self.maxTemp = 20
     self.startTime = datetime(2001, 6, 19, 0, 0)
     self.finishTime = datetime(2001, 6, 19, 0, 0)
-    self.avgTime =  timedelta(hours=(float(legStuff[2]) + float(legStuff[3])) / 2)
+    self.avgTime =  timedelta(hours=(float(line[2]) + float(line[3])) / 2)
     self.avgTemp = 0
     self.waterReq = 0
     self.sleepDuring = False
