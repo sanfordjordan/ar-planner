@@ -8,33 +8,27 @@ from Objects.foodObject import Food
 from Objects.gearObject import Gear
 from Objects.legObject import Leg
 from Objects.raceInfoObject import RaceInfo
-from datetime import datetime, timedelta
 
+from datetime import datetime, timedelta
 from weather.weather import callWeatherMan
 
 def readLegs()-> Tuple[List[Leg], RaceInfo]:
-    inputData = []
-    startTime = ''
-    latitude = ''
+    legs = []
 
     with open('DB/legsDB.csv', mode ='r')as file:
         csvFile = csv.reader(file)
         for index, line in enumerate(csvFile):
+            if line[0] == '': break
             if index == 1:
-                startTime = line[0]
-                startDate = line[1]
-                latitude = line[2]
-                longitude = line[3]
-                startDateTime = datetime.strptime(f"{startDate} {startTime}", "%d/%m/%Y %H:%M")
-                raceInfo = RaceInfo(startDateTime, latitude, longitude)
+                raceInfo = RaceInfo(line)
 
             if index >= 3:
                 if index > 3:
-                    TAInfo = [int(line[0])-1, 'TA', '', '', 0, line[5], '']
-                    inputData.append(Leg(TAInfo))
-                inputData.append(Leg(line))
-    inputData[0].boxes = Box('bike, paddle, A, B, C, D')
-    return inputData, raceInfo
+                    legs.append(Leg([int(line[0])-1, 'TA', 0, 0, 0, line[5], 0]))
+                legs.append(Leg(line))
+    
+    legs[0].boxes = Box('bike, paddle, A, B, C, D')
+    return legs, raceInfo
 
 def readFood()-> Tuple[List[Leg], RaceInfo]:
     foodData = []
@@ -61,10 +55,8 @@ def readWeather() -> pd.DataFrame:
         hourly_df['type'] = 'hourly'
         combined_df = pd.concat([daily_df, hourly_df], ignore_index=True)
 
-        # Save to CSV
         combined_df.to_csv(weatherCSV, index=False)
         df = combined_df
-    # df now holds the weather data
     return df
 
 def readGear()-> List[Gear]:

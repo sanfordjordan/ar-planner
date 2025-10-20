@@ -6,16 +6,14 @@ class Leg:
   def __init__(self, legStuff):
     self.number = int(legStuff[0])
     self.discipline = legStuff[1]
-    self.shortTime = legStuff[2]
-    self.longTime = legStuff[3]
-    self.elevation = int(legStuff[4])
+    self.elevation = int(legStuff[4]) if legStuff[4] != '' else 0
     self.boxes = Box(legStuff[5])
     self.kayakType = legStuff[6]
     self.minTemp = 10
     self.maxTemp = 20
     self.startTime = datetime(2001, 6, 19, 0, 0)
     self.finishTime = datetime(2001, 6, 19, 0, 0)
-    self.avgTime =  timedelta(minutes=0)
+    self.avgTime =  timedelta(hours=(float(legStuff[2]) + float(legStuff[3])) / 2)
     self.avgTemp = 0
     self.waterReq = 0
     self.sleepDuring = False

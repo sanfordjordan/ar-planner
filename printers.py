@@ -1,3 +1,4 @@
+import pprint
 import matplotlib.dates as mdates
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -30,6 +31,11 @@ def printLegDetails(inputData: List[Leg]):
     for leg in inputData:
         if (leg.discipline == "TA"):
             print(f"  TA Duration: {str(leg.finishTime - leg.startTime)}")
+            boxes = leg.boxes.boxesArray
+            if boxes:
+                print(f"  Boxes:    {', '.join(boxes)}")
+            else:
+                print("  Boxes:    none")
         else:
             print(f"Leg {leg.number}: {leg.discipline}")
             print(f"  Start Time:  {leg.startTime.strftime('%A')} {leg.startTime.strftime('%H:%M')}")
@@ -268,3 +274,46 @@ def printClothing(clothing: Clothing):
             print(f"   - {item}")
     
     print("------------------------")
+
+def create_packing_lists(gear_array):
+    # Initialize dictionaries for each box and starting gear
+    packing_lists = {
+        'starting gear': [],
+        'bike box': [],
+        'paddle bag': [],
+        'box A': [],
+        'box B': [],
+        'box C': [],
+        'box D': [],
+        'leaveStuff': []
+    }
+    
+    # Sort each item into appropriate list based on first journey entry
+    for gear in gear_array:
+        if gear.journey == []: continue
+        initial_location = gear.journey[0]
+        if initial_location in ['use', 'carry']:
+            packing_lists['starting gear'].append(gear.name)
+        else:
+            box_name = {
+                'bike': 'bike box',
+                'paddle': 'paddle bag',
+                'A': 'box A',
+                'B': 'box B',
+                'C': 'box C',
+                'D': 'box D',
+                'leaveStuff': 'leaveStuff'
+            }.get(initial_location, initial_location)
+            packing_lists[box_name].append(gear.name)
+    
+    # Print the lists
+    print("\nPACKING LISTS")
+    print("=============\n")
+    
+    for location, items in packing_lists.items():
+        if items:  # Only print lists that have items
+            print(f"{location.upper()}:")
+            for item in sorted(items):  # Sort items alphabetically
+                print(f"  - {item}")
+            print()
+
